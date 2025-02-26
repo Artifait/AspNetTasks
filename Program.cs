@@ -1,3 +1,4 @@
+
 using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,21 +15,29 @@ string styleBlock = @"
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 20px;
+        box-sizing: border-box;
     }
+
     h1 {
         margin-bottom: 20px;
+        font-size: 1.8em;
     }
+
     .container {
-        max-width: 800px;
+        max-width: 100%;
         margin: 0 auto;
+        padding: 20px;
+        box-sizing: border-box;
     }
+
     .book-list {
         display: flex;
-        margin-top: 30px;
         flex-wrap: wrap;
         gap: 20px;
-        
+        justify-content: space-around;
+        margin-top: 30px;
     }
+
     .book {
         background-color: #1e1e1e;
         border: 1px solid #333;
@@ -36,25 +45,53 @@ string styleBlock = @"
         border-radius: 4px;
         width: 200px;
         margin-bottom: 20px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
+
+    .book img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+    }
+
     a {
         color: #BB86FC;
         text-decoration: none;
     }
+
     a:hover {
         text-decoration: underline;
     }
+
+    .btn {
+        background-color: #6200ee;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
     form {
         background-color: #1e1e1e;
         padding: 20px;
         border-radius: 4px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
     }
+
     label {
         display: block;
         margin-bottom: 5px;
         font-weight: bold;
     }
+
     input, textarea, select {
         background-color: #333;
         color: #fff;
@@ -65,36 +102,71 @@ string styleBlock = @"
         box-sizing: border-box;
         margin-bottom: 10px;
     }
-    .btn {
-        background-color: #6200ee;
-        color: #fff;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-top: 10px;
-        margin-bottom: 20px;
-    }
+
     .form-group {
         margin-bottom: 20px;
+    }
+
+    /* Медиа-запросы для мобильных устройств */
+    @media (max-width: 768px) {
+        .book-list {
+            justify-content: center;
+        }
+
+        .book {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .container {
+            padding: 10px;
+        }
+
+        .btn {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        form {
+            max-width: 100%;
+            padding: 15px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        h1 {
+            font-size: 1.4em;
+        }
+
+        .book {
+            width: 100%;
+            padding: 10px;
+        }
+
+        .book img {
+            max-width: 80%;
+        }
     }
 </style>
 ";
 
+
+app.UseCustomHeaders();
+
 app.MapGet("/", HandleRequestHome);
 app.MapGet("/book/{id:int}", HandleRequestBook);
 app.MapGet("/add", HandleRequestAddBookForm);
+app.MapGet("/edit/{id:int}", HandleRequestEditBookForm);
 
-// API для добавления новой книги (принимает JSON)
 app.MapPost("/api/book", HandlePostAddBook);
+app.MapPost("/api/book/{id:int}", HandlePostEditBook);
+app.MapDelete("/api/book/{id:int}", HandleDeleteBook);
 
 app.Run();
 
 async Task HandleRequestHome(HttpContext context)
 {
     var response = context.Response;
-    response.Headers.ContentLanguage = "ru-RU";
-    response.Headers.ContentType = "text/html; charset=utf-8";
 
     var booksHtml = manager.GetBooksHtml();
     var html = $@"
@@ -114,21 +186,34 @@ async Task HandleRequestHome(HttpContext context)
             {booksHtml}
         </div>
     </div>
+
+    <script>
+        // Функция для удаления книги
+        async function deleteBook(bookId) {{
+            if (confirm('Вы уверены, что хотите удалить эту книгу?')) {{
+                const response = await fetch('/api/book/' + bookId, {{
+                    method: 'DELETE'
+                }});
+                if (response.ok) {{
+                    alert('Книга успешно удалена!');
+                    window.location.href = '/';  // Перезагружаем страницу после удаления
+                }} else {{
+                    alert('Ошибка при удалении книги');
+                }}
+            }}
+        }}
+    </script>
 </body>
 </html>";
-
     await response.WriteAsync(html);
 }
+
 
 async Task HandleRequestBook(HttpContext context)
 {
     var response = context.Response;
-    response.Headers.ContentLanguage = "ru-RU";
-    response.Headers.ContentType = "text/html; charset=utf-8";
-
     var bookId = int.Parse(context.Request.RouteValues["id"]!.ToString()!);
     var book = manager.GetBookById(bookId);
-
     if (book != null)
     {
         var html = $@"
@@ -147,6 +232,7 @@ async Task HandleRequestBook(HttpContext context)
         <p><strong>Год выпуска:</strong> {book.Year}</p>
         <p><strong>Жанр:</strong> {book.Genre}</p>
         <p><strong>ISBN:</strong> {book.Isbn}</p>
+        <img src='{book.ImageUrl}' alt='{book.Title}' style='width:100%; height:auto; border-radius: 4px;'>
         <a href='/' class='btn'>Назад</a>
     </div>
 </body>
@@ -163,16 +249,15 @@ async Task HandleRequestBook(HttpContext context)
 async Task HandleRequestAddBookForm(HttpContext context)
 {
     var response = context.Response;
-    response.Headers.ContentLanguage = "ru-RU";
     response.Headers.ContentType = "text/html; charset=utf-8";
-
     var funcBody = @"{e.preventDefault();
             const formData = {
                 Title: document.getElementById('title').value,
                 Author: document.getElementById('author').value,
                 Year: parseInt(document.getElementById('year').value),
                 Genre: document.getElementById('genre').value,
-                Isbn: document.getElementById('isbn').value
+                Isbn: document.getElementById('isbn').value,
+                ImageUrl: document.getElementById('imageUrl').value
             };
             const response = await fetch('/api/book', {
                 method: 'POST',
@@ -221,6 +306,10 @@ async Task HandleRequestAddBookForm(HttpContext context)
                 <label for='isbn'>ISBN:</label>
                 <input type='text' id='isbn' name='Isbn' required>
             </div>
+            <div class='form-group'>
+                <label for='imageUrl'>Ссылка на изображение:</label>
+                <input type='url' id='imageUrl' name='ImageUrl' required>
+            </div>
             <a href='/' class='btn'>Назад</a>
             <button type='submit' class='btn'>Добавить книгу</button>
         </form>
@@ -232,6 +321,93 @@ async Task HandleRequestAddBookForm(HttpContext context)
 </html>";
     await response.WriteAsync(html);
 }
+
+async Task HandleRequestEditBookForm(HttpContext context)
+{
+    var response = context.Response;
+    var bookId = int.Parse(context.Request.RouteValues["id"]!.ToString()!);
+    var book = manager.GetBookById(bookId);
+
+    if (book != null)
+    {
+        var html = $@"
+<!DOCTYPE html>
+<html lang='ru'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Редактировать книгу</title>
+    {styleBlock}
+</head>
+<body>
+    <div class='container'>
+        <h1>Редактировать книгу</h1>
+        <form id='editBookForm'>
+            <div class='form-group'>
+                <label for='title'>Название:</label>
+                <input type='text' id='title' name='Title' value='{book.Title}' required>
+            </div>
+            <div class='form-group'>
+                <label for='author'>Автор:</label>
+                <input type='text' id='author' name='Author' value='{book.Author}' required>
+            </div>
+            <div class='form-group'>
+                <label for='year'>Год выпуска:</label>
+                <input type='number' id='year' name='Year' value='{book.Year}' required>
+            </div>
+            <div class='form-group'>
+                <label for='genre'>Жанр:</label>
+                <input type='text' id='genre' name='Genre' value='{book.Genre}' required>
+            </div>
+            <div class='form-group'>
+                <label for='isbn'>ISBN:</label>
+                <input type='text' id='isbn' name='Isbn' value='{book.Isbn}' required>
+            </div>
+            <div class='form-group'>
+                <label for='imageUrl'>Ссылка на изображение:</label>
+                <input type='url' id='imageUrl' name='ImageUrl' value='{book.ImageUrl}' required>
+            </div>
+            <a href='/' class='btn'>Назад</a>
+            <button type='submit' class='btn'>Сохранить изменения</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('editBookForm').addEventListener('submit', async function(e) {{
+            e.preventDefault();
+            const formData = {{
+                Title: document.getElementById('title').value,
+                Author: document.getElementById('author').value,
+                Year: parseInt(document.getElementById('year').value),
+                Genre: document.getElementById('genre').value,
+                Isbn: document.getElementById('isbn').value,
+                ImageUrl: document.getElementById('imageUrl').value
+            }};
+            const response = await fetch('/api/book/{book.Id}', {{
+                method: 'POST',
+                headers: {{
+                    'Content-Type': 'application/json'
+                }},
+                body: JSON.stringify(formData)
+            }});
+            if (response.ok) {{
+                alert('Книга успешно обновлена!');
+                window.location.href = '/';
+            }} else {{
+                alert('Ошибка при обновлении книги');
+            }}
+        }});
+    </script>
+</body>
+</html>";
+        await response.WriteAsync(html);
+    }
+    else
+    {
+        response.StatusCode = 404;
+        await response.WriteAsync("Книга не найдена");
+    }
+}
+
 
 async Task HandlePostAddBook(HttpContext context)
 {
@@ -247,6 +423,33 @@ async Task HandlePostAddBook(HttpContext context)
     manager.AddBook(newBook);
     context.Response.StatusCode = 201;
     await context.Response.WriteAsync("Книга успешно добавлена");
+}
+
+async Task HandlePostEditBook(HttpContext context)
+{
+    var bookId = int.Parse(context.Request.RouteValues["id"]!.ToString()!);
+    using var reader = new StreamReader(context.Request.Body);
+    var body = await reader.ReadToEndAsync();
+    var updatedBook = JsonConvert.DeserializeObject<Book>(body);
+
+    if (updatedBook == null)
+    {
+        context.Response.StatusCode = 400;
+        await context.Response.WriteAsync("Неверные данные книги");
+        return;
+    }
+
+    manager.EditBook(bookId, updatedBook);
+    context.Response.StatusCode = 200;
+    await context.Response.WriteAsync("Книга успешно обновлена");
+}
+
+async Task HandleDeleteBook(HttpContext context)
+{
+    var bookId = int.Parse(context.Request.RouteValues["id"]!.ToString()!);
+    manager.DeleteBook(bookId);
+    context.Response.StatusCode = 200;
+    await context.Response.WriteAsync("Книга успешно удалена");
 }
 
 public class BookManager
@@ -286,7 +489,10 @@ public class BookManager
             <div class='book'>
                 <h2>{book.Title}</h2>
                 <p>{book.Author}, {book.Year}</p>
+                <img src='{book.ImageUrl}' alt='{book.Title}' style='width:100%; height:auto; border-radius: 4px;'>
                 <a href='/book/{book.Id}'>Подробнее</a>
+                <a href='/edit/{book.Id}' class='btn'>Редактировать</a>
+                <button onclick='deleteBook({book.Id})' class='btn'>Удалить</button>
             </div>";
         }
         return booksHtml;
@@ -300,6 +506,31 @@ public class BookManager
         _books.Add(newBook);
         SaveBooks();
     }
+
+    public void EditBook(int id, Book updatedBook)
+    {
+        var book = _books.FirstOrDefault(b => b.Id == id);
+        if (book != null)
+        {
+            book.Title = updatedBook.Title;
+            book.Author = updatedBook.Author;
+            book.Year = updatedBook.Year;
+            book.Genre = updatedBook.Genre;
+            book.Isbn = updatedBook.Isbn;
+            book.ImageUrl = updatedBook.ImageUrl;
+            SaveBooks();
+        }
+    }
+
+    public void DeleteBook(int id)
+    {
+        var book = _books.FirstOrDefault(b => b.Id == id);
+        if (book != null)
+        {
+            _books.Remove(book);
+            SaveBooks();
+        }
+    }
 }
 
 public class Book
@@ -310,4 +541,21 @@ public class Book
     public int Year { get; set; }
     public string Genre { get; set; }
     public string Isbn { get; set; }
+    public string ImageUrl { get; set; }  
 }
+
+public static class MiddlewareExtensions
+{
+    public static IApplicationBuilder UseCustomHeaders(this IApplicationBuilder app)
+    {
+        return app.Use(async (context, next) =>
+        {
+            context.Response.Headers.ContentLanguage = "ru-RU";
+            context.Response.Headers.ContentType = "text/html; charset=utf-8";
+
+            await next();
+        });
+    }
+}
+
+
