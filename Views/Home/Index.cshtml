@@ -1,0 +1,33 @@
+﻿@using AspNetTasks.Models
+@model List<Book>
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список книг</title>
+    <link rel="stylesheet" href="~/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Список книг</h1>
+        <a href="/book/add" class="btn">Добавить книгу</a>
+        <div class="book-list">
+            @foreach (var book in Model)
+            {
+                <div class="book">
+                    <h2>@book.Title</h2>
+                    <p>@book.Author, @book.Year</p>
+                    <img src="@book.ImageUrl" alt="@book.Title" style="width:100%; height:auto; border-radius: 4px;">
+                    <a href="/book/details/@book.Id">Подробнее</a>
+                    <a href="/book/edit/@book.Id" class="btn">Редактировать</a>
+                    <form method="post" action="/book/delete/@book.Id" style="display:inline;">
+                        <button type="submit" class="btn">Удалить</button>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>

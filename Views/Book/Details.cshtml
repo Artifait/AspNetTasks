@@ -1,0 +1,22 @@
+﻿@model AspNetTasks.Models.Book
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@Model.Title</title>
+    <link rel="stylesheet" href="~/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>@Model.Title</h1>
+        <p><strong>Автор:</strong> @Model.Author</p>
+        <p><strong>Год выпуска:</strong> @Model.Year</p>
+        <p><strong>Жанр:</strong> @Model.Genre</p>
+        <p><strong>ISBN:</strong> @Model.Isbn</p>
+        <img src="@Model.ImageUrl" alt="@Model.Title" style="width:100%; height:auto; border-radius: 4px;">
+        <a href="/" class="btn">Назад</a>
+    </div>
+</body>
+</html>

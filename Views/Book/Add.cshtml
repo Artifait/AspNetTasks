@@ -1,0 +1,44 @@
+﻿@model AspNetTasks.Models.Book
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить книгу</title>
+    <link rel="stylesheet" href="~/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Добавить новую книгу</h1>
+        <form method="post" action="/book/add">
+            <div class="form-group">
+                <label for="title">Название:</label>
+                <input type="text" id="title" name="Title" value="@Model.Title" required>
+            </div>
+            <div class="form-group">
+                <label for="author">Автор:</label>
+                <input type="text" id="author" name="Author" value="@Model.Author" required>
+            </div>
+            <div class="form-group">
+                <label for="year">Год выпуска:</label>
+                <input type="number" id="year" name="Year" value="@Model.Year" required>
+            </div>
+            <div class="form-group">
+                <label for="genre">Жанр:</label>
+                <input type="text" id="genre" name="Genre" value="@Model.Genre" required>
+            </div>
+            <div class="form-group">
+                <label for="isbn">ISBN:</label>
+                <input type="text" id="isbn" name="Isbn" value="@Model.Isbn" required>
+            </div>
+            <div class="form-group">
+                <label for="imageUrl">Ссылка на изображение:</label>
+                <input type="url" id="imageUrl" name="ImageUrl" value="@Model.ImageUrl" required>
+            </div>
+            <button type="submit" class="btn">Добавить книгу</button>
+            <a href="/" class="btn">Назад</a>
+        </form>
+    </div>
+</body>
+</html>
