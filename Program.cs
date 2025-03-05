@@ -3,6 +3,12 @@ using Newtonsoft.Json;
 using AspNetTasks.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSingleton<UserDb>();
+builder.Services.AddTransient<PasswordManager>();
+builder.Services.AddTransient<AuthManager>();
+builder.Services.AddScoped<LoggerAuthRequest>();
+
 var app = builder.Build();
 
 string styleBlock = @"
@@ -106,5 +112,18 @@ string styleBlock = @"
     }
 </style>
 ";
+
+app.MapGet("/Auth/{name}&{password}", (string name, string password, AuthManager auther, LoggerAuthRequest logger) => {
+    var result = auther.AuthUser(name, password, logger.LogString);
+
+    if(result)
+        logger.LogString($"Удачная попытка входа, под логином: {name}");
+
+    return Results.Text(result ? "Добро пожаловать милорд." : "НЕТ ВЫ НЕ ПРАВЫ, либо пароль либо логин не верны.");
+});
+
+app.MapGet("/Reg/{name}&{password}", (string name, string password, UserDb db) => {
+    return Results.Text(db.RegisterUser(name, password) ? "Всё мы вас зарегали." : "Не удалось зарегистрировать нового пользователя.");
+});
 
 app.Run();
