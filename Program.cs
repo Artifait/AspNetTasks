@@ -1,56 +1,46 @@
 using AspNetTasks.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
+using MyApp.Data;
+using MyApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Настройка строки подключения
-string connection = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(connection));
-
-// Настройка сессий
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-});
-
+// Подключаем MVC
 builder.Services.AddControllersWithViews();
+
+// Настройка EF Core с SQLite
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=MyApp.db"));
+
+// Регистрируем сервис для работы с пользователями
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Настройка аутентификации и авторизации
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+    });
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Настроим создание пользователя root
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsDevelopment())
 {
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
-    var userExists = context.Users.Any(u => u.Username == "root");
-
-    if (!userExists)
-    {
-        var admin = new User
-        {
-            Username = "root",
-            FullName = "Admin",
-            PasswordHash = HashPassword("1234")
-        };
-        context.Users.Add(admin);
-        await context.SaveChangesAsync();
-    }
+    app.UseExceptionHandler("/Home/Error");
 }
 
-// Мидлвары
+app.UseStaticFiles();
+
 app.UseRouting();
-app.UseSession();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-
-string HashPassword(string password)
-{
-    using var sha256 = SHA256.Create();
-    var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-    return Convert.ToBase64String(hashedBytes);
-}
