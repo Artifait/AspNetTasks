@@ -3,12 +3,43 @@ using Newtonsoft.Json;
 using AspNetTasks.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-var manager = new BookManager("books.json");
+
+builder.Services.AddSingleton(sp =>
+{
+    var manager = new BookManager("books.json");
+    manager.LoadBooks();
+    return manager;
+});
+
 var app = builder.Build();
 
-manager.LoadBooks();
+app.UseCustomHeaders(); 
 
-string styleBlock = @"
+app.UseWhen(ctx => ctx.Request.Path.Equals("/") &&
+                   ctx.Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase),
+    appBuilder => { appBuilder.UseHomePage(); });
+
+app.UseWhen(ctx => ctx.Request.Path.Equals("/books") &&
+                   ctx.Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase),
+    appBuilder => { appBuilder.UseBooksList(); });
+
+app.UseWhen(ctx => ctx.Request.Path.StartsWithSegments("/book") &&
+                   ctx.Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase),
+    appBuilder => { appBuilder.UseBookDetail(); });
+
+app.UseWhen(ctx => ctx.Request.Path.Equals("/books/add") &&
+                   ctx.Request.Method.Equals("GET", StringComparison.OrdinalIgnoreCase),
+    appBuilder => { appBuilder.UseAddBookForm(); });
+
+app.UseWhen(ctx => ctx.Request.Path.Equals("/books/add") &&
+                   ctx.Request.Method.Equals("POST", StringComparison.OrdinalIgnoreCase),
+    appBuilder => { appBuilder.UseAddBook(); });
+
+app.Run();
+
+public static class HtmlTemplates
+{
+    public static string StyleBlock = @"
 <style>
     body {
         background-color: #121212;
@@ -109,37 +140,87 @@ string styleBlock = @"
     }
 </style>
 ";
+}
 
-app.UseCustomHeaders();
-
-app.MapGet("/", HandleRequestHome);
-app.MapGet("/book/{id:int}", HandleRequestBook);
-app.MapGet("/add", HandleRequestAddBookForm);
-app.MapGet("/edit/{id:int}", HandleRequestEditBookForm);
-
-app.MapPost("/api/book", HandlePostAddBook);
-app.MapPost("/api/book/{id:int}", HandlePostEditBook);
-app.MapDelete("/api/book/{id:int}", HandleDeleteBook);
-
-app.Run();
-
-async Task HandleRequestHome(HttpContext context)
+public static class LibraryMiddlewareExtensions
 {
-    var response = context.Response;
-    var booksHtml = manager.GetBooksHtml();
-    var html = $@"
-<!DOCTYPE html>
+    public static IApplicationBuilder UseHomePage(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<HomePageMiddleware>();
+    }
+    public static IApplicationBuilder UseBooksList(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<BooksListMiddleware>();
+    }
+    public static IApplicationBuilder UseBookDetail(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<BookDetailMiddleware>();
+    }
+    public static IApplicationBuilder UseAddBookForm(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<AddBookFormMiddleware>();
+    }
+    public static IApplicationBuilder UseAddBook(this IApplicationBuilder builder)
+    {
+        return builder.UseMiddleware<AddBookMiddleware>();
+    }
+}
+
+public class HomePageMiddleware
+{
+    private readonly RequestDelegate _next;
+    public HomePageMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+    public async Task InvokeAsync(HttpContext context)
+    {
+        context.Response.ContentType = "text/html; charset=utf-8";
+        string html = $@"<!DOCTYPE html>
 <html lang='ru'>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Библиотека книг</title>
-    {styleBlock}
+    <title>Добро пожаловать</title>
+    {HtmlTemplates.StyleBlock}
 </head>
 <body>
     <div class='container'>
-        <h1>Библиотека книг</h1>
-        <a href='/add' class='btn'>Добавить книгу</a>
+        <h1>Добро пожаловать в онлайн библиотеку</h1>
+        <a href='/books' class='btn'>Список книг</a>
+        <a href='/books/add' class='btn'>Добавить книгу</a>
+    </div>
+</body>
+</html>";
+        await context.Response.WriteAsync(html);
+    }
+}
+
+public class BooksListMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly BookManager _manager;
+    public BooksListMiddleware(RequestDelegate next, BookManager manager)
+    {
+        _next = next;
+        _manager = manager;
+    }
+    public async Task InvokeAsync(HttpContext context)
+    {
+        context.Response.ContentType = "text/html; charset=utf-8";
+        var booksHtml = _manager.GetBooksHtml(); 
+        string html = $@"<!DOCTYPE html>
+<html lang='ru'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Список книг</title>
+    {HtmlTemplates.StyleBlock}
+</head>
+<body>
+    <div class='container'>
+        <h1>Список книг</h1>
+        <a href='/' class='btn'>Главная</a>
         <div class='book-list'>
             {booksHtml}
         </div>
@@ -152,31 +233,45 @@ async Task HandleRequestHome(HttpContext context)
                     alert('Книга успешно удалена!');
                     window.location.href = '/';
                 }} else {{
-                    alert('Ошибка при удалении книги');
+                    alert('Зачем вы это делаете???');
                 }}
             }}
         }}
     </script>
 </body>
 </html>";
-    await response.WriteAsync(html);
+        await context.Response.WriteAsync(html);
+    }
 }
 
-async Task HandleRequestBook(HttpContext context)
+public class BookDetailMiddleware
 {
-    var response = context.Response;
-    var bookId = int.Parse(context.Request.RouteValues["id"]!.ToString()!);
-    var book = manager.GetBookById(bookId);
-    if (book != null)
+    private readonly RequestDelegate _next;
+    private readonly BookManager _manager;
+    public BookDetailMiddleware(RequestDelegate next, BookManager manager)
     {
-        var html = $@"
-<!DOCTYPE html>
+        _next = next;
+        _manager = manager;
+    }
+    public async Task InvokeAsync(HttpContext context)
+    {
+        var path = context.Request.Path.Value; // Ожидается, например, /book/1
+        if (path != null && path.StartsWith("/book/"))
+        {
+            var idPart = path.Substring("/book/".Length);
+            if (int.TryParse(idPart, out int bookId))
+            {
+                var book = _manager.GetBookById(bookId);
+                if (book != null)
+                {
+                    context.Response.ContentType = "text/html; charset=utf-8";
+                    string html = $@"<!DOCTYPE html>
 <html lang='ru'>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>{book.Title}</title>
-    {styleBlock}
+    {HtmlTemplates.StyleBlock}
 </head>
 <body>
     <div class='container'>
@@ -186,31 +281,37 @@ async Task HandleRequestBook(HttpContext context)
         <p><strong>Жанр:</strong> {book.Genre}</p>
         <p><strong>ISBN:</strong> {book.Isbn}</p>
         <img src='{book.ImageUrl}' alt='{book.Title}'>
-        <a href='/' class='btn'>Назад</a>
+        <a href='/books' class='btn'>Назад</a>
     </div>
 </body>
 </html>";
-        await response.WriteAsync(html);
-    }
-    else
-    {
-        response.StatusCode = 404;
-        await response.WriteAsync("Книга не найдена");
+                    await context.Response.WriteAsync(html);
+                    return;
+                }
+            }
+        }
+        context.Response.StatusCode = 404;
+        await context.Response.WriteAsync("Книга не найдена");
     }
 }
 
-async Task HandleRequestAddBookForm(HttpContext context)
+public class AddBookFormMiddleware
 {
-    var response = context.Response;
-    response.Headers.ContentType = "text/html; charset=utf-8";
-    var html = $@"
-<!DOCTYPE html>
+    private readonly RequestDelegate _next;
+    public AddBookFormMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+    public async Task InvokeAsync(HttpContext context)
+    {
+        context.Response.ContentType = "text/html; charset=utf-8";
+        string html = $@"<!DOCTYPE html>
 <html lang='ru'>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>Добавить книгу</title>
-    {styleBlock}
+    {HtmlTemplates.StyleBlock}
 </head>
 <body>
     <div class='container'>
@@ -245,7 +346,8 @@ async Task HandleRequestAddBookForm(HttpContext context)
         </form>
     </div>
     <script>
-        document.getElementById('addBookForm').addEventListener('submit', async function(e) {{e.preventDefault();
+        document.getElementById('addBookForm').addEventListener('submit', async function(e) {{
+            e.preventDefault();
             const formData = {{
                 Title: document.getElementById('title').value,
                 Author: document.getElementById('author').value,
@@ -254,14 +356,14 @@ async Task HandleRequestAddBookForm(HttpContext context)
                 Isbn: document.getElementById('isbn').value,
                 ImageUrl: document.getElementById('imageUrl').value
             }};
-            const response = await fetch('/api/book', {{
+            const response = await fetch('/books/add', {{
                 method: 'POST',
                 headers: {{ 'Content-Type': 'application/json' }},
                 body: JSON.stringify(formData)
             }});
             if (response.ok) {{
                 alert('Книга успешно добавлена!');
-                window.location.href = '/';
+                window.location.href = '/books';
             }} else {{
                 alert('Ошибка при добавлении книги');
             }}
@@ -269,131 +371,43 @@ async Task HandleRequestAddBookForm(HttpContext context)
     </script>
 </body>
 </html>";
-    await response.WriteAsync(html);
-}
-
-async Task HandleRequestEditBookForm(HttpContext context)
-{
-    var response = context.Response;
-    var bookId = int.Parse(context.Request.RouteValues["id"]!.ToString()!);
-    var book = manager.GetBookById(bookId);
-
-    if (book != null)
-    {
-        var html = $@"
-<!DOCTYPE html>
-<html lang='ru'>
-<head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Редактировать книгу</title>
-    {styleBlock}
-</head>
-<body>
-    <div class='container'>
-        <h1>Редактировать книгу</h1>
-        <form id='editBookForm'>
-            <div class='form-group'>
-                <label for='title'>Название:</label>
-                <input type='text' id='title' name='Title' value='{book.Title}' required>
-            </div>
-            <div class='form-group'>
-                <label for='author'>Автор:</label>
-                <input type='text' id='author' name='Author' value='{book.Author}' required>
-            </div>
-            <div class='form-group'>
-                <label for='year'>Год выпуска:</label>
-                <input type='number' id='year' name='Year' value='{book.Year}' required>
-            </div>
-            <div class='form-group'>
-                <label for='genre'>Жанр:</label>
-                <input type='text' id='genre' name='Genre' value='{book.Genre}' required>
-            </div>
-            <div class='form-group'>
-                <label for='isbn'>ISBN:</label>
-                <input type='text' id='isbn' name='Isbn' value='{book.Isbn}' required>
-            </div>
-            <div class='form-group'>
-                <label for='imageUrl'>Ссылка на изображение:</label>
-                <input type='url' id='imageUrl' name='ImageUrl' value='{book.ImageUrl}' required>
-            </div>
-            <a href='/' class='btn'>Назад</a>
-            <button type='submit' class='btn'>Сохранить изменения</button>
-        </form>
-    </div>
-    <script>
-        document.getElementById('editBookForm').addEventListener('submit', async function(e) {{e.preventDefault();
-            const formData = {{
-                Title: document.getElementById('title').value,
-                Author: document.getElementById('author').value,
-                Year: parseInt(document.getElementById('year').value),
-                Genre: document.getElementById('genre').value,
-                Isbn: document.getElementById('isbn').value,
-                ImageUrl: document.getElementById('imageUrl').value
-            }};
-            const response = await fetch('/api/book/{book.Id}', {{
-                method: 'POST',
-                headers: {{ 'Content-Type': 'application/json' }},
-                body: JSON.stringify(formData)
-            }});
-            if (response.ok) {{
-                alert('Книга успешно обновлена!');
-                window.location.href = '/';
-            }} else {{
-                alert('Ошибка при обновлении книги');
-            }}
-        }});
-    </script>
-</body>
-</html>";
-        await response.WriteAsync(html);
-    }
-    else
-    {
-        response.StatusCode = 404;
-        await response.WriteAsync("Книга не найдена");
+        await context.Response.WriteAsync(html);
     }
 }
 
-async Task HandlePostAddBook(HttpContext context)
+public class AddBookMiddleware
 {
-    using var reader = new StreamReader(context.Request.Body);
-    var body = await reader.ReadToEndAsync();
-    var newBook = JsonConvert.DeserializeObject<Book>(body);
-    if (newBook == null)
+    private readonly RequestDelegate _next;
+    private readonly BookManager _manager;
+    public AddBookMiddleware(RequestDelegate next, BookManager manager)
     {
-        context.Response.StatusCode = 400;
-        await context.Response.WriteAsync("Неверные данные книги");
-        return;
+        _next = next;
+        _manager = manager;
     }
-    manager.AddBook(newBook);
-    context.Response.StatusCode = 201;
-    await context.Response.WriteAsync("Книга успешно добавлена");
-}
-
-async Task HandlePostEditBook(HttpContext context)
-{
-    var bookId = int.Parse(context.Request.RouteValues["id"]!.ToString()!);
-    using var reader = new StreamReader(context.Request.Body);
-    var body = await reader.ReadToEndAsync();
-    var updatedBook = JsonConvert.DeserializeObject<Book>(body);
-
-    if (updatedBook == null)
+    public async Task InvokeAsync(HttpContext context)
     {
-        context.Response.StatusCode = 400;
-        await context.Response.WriteAsync("Неверные данные книги");
-        return;
+        using var reader = new StreamReader(context.Request.Body);
+        var body = await reader.ReadToEndAsync();
+        try
+        {
+            var newBook = JsonConvert.DeserializeObject<Book>(body);
+            if (newBook == null)
+            {
+                context.Response.StatusCode = 400;
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonConvert.SerializeObject(new { error = "Неверные данные книги" }));
+                return;
+            }
+            _manager.AddBook(newBook);
+            context.Response.StatusCode = 201;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonConvert.SerializeObject(new { message = "Книга успешно добавлена" }));
+        }
+        catch (Exception ex)
+        {
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(JsonConvert.SerializeObject(new { error = ex.Message }));
+        }
     }
-
-    manager.EditBook(bookId, updatedBook);
-    context.Response.StatusCode = 200;
-    await context.Response.WriteAsync("Книга успешно обновлена");
-}
-
-async Task HandleDeleteBook(HttpContext context)
-{
-    var bookId = int.Parse(context.Request.RouteValues["id"]!.ToString()!);
-    manager.DeleteBook(bookId);
-    context.Response.StatusCode = 200;
-    await context.Response.WriteAsync("Книга успешно удалена");
 }

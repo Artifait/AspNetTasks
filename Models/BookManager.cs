@@ -42,7 +42,6 @@ namespace AspNetTasks.Models
                 <h2>{book.Title}</h2>
                 <p>{book.Author}, {book.Year}</p>
                 <a href='/book/{book.Id}' class='btn'>Подробнее</a>
-                <a href='/edit/{book.Id}' class='btn'>Редактировать</a>
                 <button onclick='deleteBook({book.Id})' class='btn'>Удалить</button>
             </div>";
             }
