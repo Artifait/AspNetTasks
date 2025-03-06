@@ -1,4 +1,5 @@
-﻿namespace AspNetTasks.Models
+﻿
+namespace AspNetTasks.Models.PersonModels
 {
     public class PersonManager
     {
