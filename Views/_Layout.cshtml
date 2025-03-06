@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Store</title>
+    <link href="~/css/styles.css" rel="stylesheet" />
+</head>
+<body class="dark-theme">
+    <header>
+        <div class="logo">
+            <a href="@Url.Action("Index", "Home")">Game Store</a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="@Url.Action("Index", "Home")">Home</a></li>
+                <li><a href="@Url.Action("Index", "Game")">Games</a></li>
+
+                @if (ViewData["IsAuthenticated"] != null && (bool)ViewData["IsAuthenticated"])
+                {
+                    <li>Hello, @ViewData["Username"]! <a href="@Url.Action("Logout", "Home")">Logout</a></li>
+                }
+                else
+                {
+                    <li><a href="@Url.Action("Login", "Home")">Login</a></li>
+                    <li><a href="@Url.Action("Register", "Home")">Register</a></li>
+                }
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Game Store. All rights reserved.</p>
+    </footer>
+
+    <script src="~/js/scripts.js"></script>
+</body>
+</html>

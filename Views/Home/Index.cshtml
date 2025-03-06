@@ -1,0 +1,14 @@
+﻿@{
+    Layout = "_Layout";
+}
+
+<h2>Welcome to the Game Store</h2>
+
+@if (ViewData["IsAuthenticated"] != null && (bool)ViewData["IsAuthenticated"])
+{
+    <p>Hello, @ViewData["Username"]! You are logged in. <a href="@Url.Action("Logout", "Home")">Logout</a></p>
+}
+else
+{
+    <p><a href="@Url.Action("Register", "Home")">Register</a> | <a href="@Url.Action("Login", "Home")">Login</a></p>
+}

@@ -1,0 +1,19 @@
+﻿@model List<AspNetTasks.Models.Game>
+
+<h1>Welcome to the Game Store!</h1>
+
+<a href="@Url.Action("AddGame", "Game")">Add New Game</a>
+
+<ul>
+    @foreach (var game in Model)
+    {
+        <li>
+            <h3>@game.Name</h3>
+            <p>@game.Description</p>
+            <p>Price: @game.Price</p>
+            <a href="@Url.Action("ShowGame", "Game", new { id = game.Id })">View Details</a> |
+            <a href="@Url.Action("EditGame", "Game", new { id = game.Id })">Edit</a> |
+            <a href="@Url.Action("DeleteGame", "Game", new { id = game.Id })">Delete</a>
+        </li>
+    }
+</ul>

@@ -1,0 +1,13 @@
+﻿@model AspNetTasks.ViewModels.LoginViewModel
+
+<h2>Login</h2>
+
+<form asp-action="Login" method="post">
+    <label>Username</label>
+    <input asp-for="Username" />
+
+    <label>Password</label>
+    <input asp-for="Password" type="password" />
+
+    <button type="submit">Login</button>
+</form>
