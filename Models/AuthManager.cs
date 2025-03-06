@@ -21,7 +21,13 @@
             }
 
             var user = users.Where(user => user.Login == login).FirstOrDefault();
-            return user == null ? false : _passwordManager.VerifyHashedPassword(user.PasswordHash, password);
+            if(user == null ? false : _passwordManager.VerifyHashedPassword(user.PasswordHash, password))
+            {
+                return true;
+            }
+
+            logger?.Invoke($"Введён не верный пароль, для входа под логином: {login}.");
+            return false;
         }
     }
 }
