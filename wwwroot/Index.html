@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин игр</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Магазин игр</h1>
+        <nav>
+            <a href="/AddGame.html">Добавить игру</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="games-list">
+            <h2>Список игр</h2>
+            <div id="games-container"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Магазин игр</p>
+    </footer>
+
+    <script>
+        // Запрос к серверу для получения списка игр
+        fetch('/games')
+            .then(response => response.json())
+            .then(data => {
+                const gamesContainer = document.getElementById('games-container');
+                data.forEach(game => {
+                    const gameElement = document.createElement('div');
+                    gameElement.classList.add('game');
+
+                    const imagePath = `/files/${game.fileKey}`;
+                    gameElement.innerHTML = `
+                        <img src="${imagePath}" alt="${game.name}" />
+                        <h3>${game.name}</h3>
+                        <p>Жанр: ${game.genre}</p>
+                        <p>Автор: ${game.author}</p>
+                        <a href="/GameDetails.html?id=${game.id}">Подробнее</a>
+                    `;
+
+                    gamesContainer.appendChild(gameElement);
+                });
+            });
+    </script>
+</body>
+</html>

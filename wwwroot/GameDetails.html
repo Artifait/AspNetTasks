@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали игры</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Магазин игр</h1>
+        <nav>
+            <a href="/index.html">На главную</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="game-details">
+            <h2>Детали игры</h2>
+            <div id="game-info"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Магазин игр</p>
+    </footer>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('id');
+
+        // Получаем данные игры по id
+        fetch(`/games/${gameId}`)
+            .then(response => response.json())
+            .then(game => {
+                const gameInfo = document.getElementById('game-info');
+                const imagePath = `/files/${game.fileKey}`;
+
+                gameInfo.innerHTML = `
+                    <img src="${imagePath}" alt="${game.name}" />
+                    <h3>${game.name}</h3>
+                    <p>Жанр: ${game.genre}</p>
+                    <p>Автор: ${game.author}</p>
+                `;
+            });
+    </script>
+</body>
+</html>

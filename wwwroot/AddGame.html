@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить игру</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Магазин игр</h1>
+        <nav>
+            <a href="/index.html">На главную</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="add-game">
+            <h2>Добавить игру</h2>
+            <form id="add-game-form">
+                <label for="name">Название:</label>
+                <input type="text" id="name" name="name" required><br>
+
+                <label for="genre">Жанр:</label>
+                <input type="text" id="genre" name="genre" required><br>
+
+                <label for="author">Автор:</label>
+                <input type="text" id="author" name="author" required><br>
+
+                <label for="image">Изображение:</label>
+                <input type="file" id="image" name="image" accept="image/*" required><br>
+
+                <button type="submit">Добавить игру</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Магазин игр</p>
+    </footer>
+
+    <script>
+        document.getElementById('add-game-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('name').value);
+            formData.append('genre', document.getElementById('genre').value);
+            formData.append('author', document.getElementById('author').value);
+            formData.append('image', document.getElementById('image').files[0]);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.id) {
+                        alert('Игра успешно добавлена!');
+                        window.location.href = '/index.html';
+                    } else {
+                        alert('Ошибка при добавлении игры!');
+                    }
+                });
+        });
+    </script>
+</body>
+</html>
