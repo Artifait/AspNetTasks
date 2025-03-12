@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Детали игры</title>
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
     <header>
@@ -18,6 +18,8 @@
         <section id="game-details">
             <h2>Детали игры</h2>
             <div id="game-info"></div>
+            <button id="edit-btn" class="accent">Редактировать игру</button>
+            <button id="delete-btn" class="accent">Удалить игру</button>
         </section>
     </main>
 
@@ -37,11 +39,26 @@
                 const imagePath = `/files/${game.fileKey}`;
 
                 gameInfo.innerHTML = `
-                    <img src="${imagePath}" alt="${game.name}" />
-                    <h3>${game.name}</h3>
-                    <p>Жанр: ${game.genre}</p>
-                    <p>Автор: ${game.author}</p>
-                `;
+                        <img src="${imagePath}" alt="${game.name}" />
+                        <h3>${game.name}</h3>
+                        <p>Жанр: ${game.genre}</p>
+                        <p>Автор: ${game.author}</p>
+                    `;
+
+                // Edit button logic
+                document.getElementById('edit-btn').onclick = function () {
+                    window.location.href = `/EditGame.html?id=${gameId}`;
+                };
+
+                // Delete button logic
+                document.getElementById('delete-btn').onclick = function () {
+                    fetch(`/games/${gameId}`, { method: 'DELETE' })
+                        .then(() => {
+                            alert('Игра успешно удалена');
+                            window.location.href = '/index.html';
+                        })
+                        .catch(err => alert('Ошибка при удалении игры'));
+                };
             });
     </script>
 </body>

@@ -1,8 +1,6 @@
+
 using AspNetTasks.Models;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,22 +10,19 @@ builder.Services.AddDbContext<GameStoreContext>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAntiforgery(options =>
 {
-    // Настройка политики, если требуется
-    options.HeaderName = "X-CSRF-TOKEN"; // имя заголовка для передачи токена
+    options.HeaderName = "X-CSRF-TOKEN"; 
 });
 
 var app = builder.Build();
 
-// Настроим обработку статичных файлов
-app.UseStaticFiles(); // Теперь все статические файлы будут обслуживаться из wwwroot
+app.UseStaticFiles(); 
 
 
-// Автоматическое создание базы данных при старте приложения
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<GameStoreContext>();
     context.Database.EnsureCreated();
-    context.Database.Migrate();
+    //context.Database.Migrate();
 }
 
 app.MapGet("/", () => Results.Redirect("/index.html"));
@@ -38,12 +33,12 @@ app.MapGet("/games", async (string? author, string? genre, GameStoreContext cont
 
     if (!string.IsNullOrEmpty(author))
     {
-        games = games.Where(g => g.Author.Contains(author));
+        games = games.Where(g => g.Author.Equals(author));
     }
 
     if (!string.IsNullOrEmpty(genre))
     {
-        games = games.Where(g => g.Genre.Contains(genre));
+        games = games.Where(g => g.Genre.Equals(genre));
     }
 
     return Results.Ok(await games.ToListAsync());

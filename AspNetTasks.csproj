@@ -19,11 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controls\" />
-    <Folder Include="Pages\" />
-    <Folder Include="ViewModels\" />
+    <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\images\" />
-    <Folder Include="Files\" />
   </ItemGroup>
 
   <ItemGroup>

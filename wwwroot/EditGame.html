@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактировать игру</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Магазин игр</h1>
+        <nav>
+            <a href="/index.html">На главную</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="edit-game">
+            <h2>Редактировать игру</h2>
+            <form id="edit-game-form">
+                <label for="name">Название:</label>
+                <input type="text" id="name" name="name" required><br>
+
+                <label for="genre">Жанр:</label>
+                <input type="text" id="genre" name="genre" required><br>
+
+                <label for="author">Автор:</label>
+                <input type="text" id="author" name="author" required><br>
+
+                <label for="image">Изображение:</label>
+                <input type="file" id="image" name="image" accept="image/*"><br>
+
+                <button type="submit">Сохранить изменения</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Магазин игр</p>
+    </footer>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('id');
+
+        // Fetch existing game details for editing
+        fetch(`/games/${gameId}`)
+            .then(response => response.json())
+            .then(game => {
+                document.getElementById('name').value = game.name;
+                document.getElementById('genre').value = game.genre;
+                document.getElementById('author').value = game.author;
+            });
+
+        // Handle form submission for editing the game
+        document.getElementById('edit-game-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const formData = new FormData();
+            formData.append('name', document.getElementById('name').value);
+            formData.append('genre', document.getElementById('genre').value);
+            formData.append('author', document.getElementById('author').value);
+            if (document.getElementById('image').files[0]) {
+                formData.append('image', document.getElementById('image').files[0]);
+            }
+
+            fetch(`/games/${gameId}`, {
+                method: 'PUT',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(() => {
+                alert('Изменения сохранены');
+                window.location.href = `/GameDetails.html?id=${gameId}`;
+            })
+            .catch(err => alert('Ошибка при сохранении изменений'));
+        });
+    </script>
+</body>
+</html>
