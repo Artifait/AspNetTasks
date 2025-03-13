@@ -1,25 +1,22 @@
 ﻿:root {
     /* Основные цвета */
-    --background-color: #121212; /* Цвет фона */
-    --secondary-background-color: #1e1e1e; /* Вторичный фон для элементов */
-    --primary-text-color: #ffffff; /* Основной текст */
-    --secondary-text-color: #bbbbbb; /* Вторичный текст */
-    --footer-background-color: #2c2c2c; /* Цвет фона футера */
-    --header-background-color: #333333; /* Цвет фона хедера */
-    --button-background-color: #555555; /* Цвет фона кнопок */
-    --button-hover-background-color: #666666; /* Цвет фона кнопок при наведении */
-    --input-background-color: #1a1a1a; /* Цвет фона для инпутов */
-    --input-border-color: #444444; /* Цвет границы инпутов */
-    /* Новый цвет для ссылок */
-    --link-color: #8ab4f8; /* Цвет ссылок (пастельный синий для контраста с темным фоном) */
-    --link-hover-color: #aad1ff; /* Цвет ссылок при наведении (светлый оттенок синего) */
-    /* Новый цвет для акцентов */
-    --accent-color: #ff4081; /* Цвет акцентов (розовый, чтобы добавить яркости и контраста) */
-    --accent-hover-color: #ff80ab; /* Цвет акцентов при наведении (светлый розовый) */
-    /* Новые цвета для фона и выделения */
-    --highlight-background-color: #262626; /* Фон для выделенных элементов */
-    --border-color: #333333; /* Цвет границ для контрастности */
-    --card-background-color: #2a2a2a; /* Цвет фона карточек */
+    --background-color: #121212;
+    --secondary-background-color: #1e1e1e;
+    --primary-text-color: #ffffff;
+    --secondary-text-color: #bbbbbb;
+    --footer-background-color: #2c2c2c;
+    --header-background-color: #333333;
+    --button-background-color: #555555;
+    --button-hover-background-color: #666666;
+    --input-background-color: #1a1a1a;
+    --input-border-color: #444444;
+    --link-color: #8ab4f8;
+    --link-hover-color: #aad1ff;
+    --accent-color: #ff4081;
+    --accent-hover-color: #ff80ab;
+    --highlight-background-color: #262626;
+    --border-color: #333333;
+    --card-background-color: #2a2a2a;
 }
 
 body {
@@ -28,9 +25,6 @@ body {
     padding: 0;
     background-color: var(--background-color);
     color: var(--primary-text-color);
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
 }
 
 header {
@@ -40,136 +34,23 @@ header {
     text-align: center;
 }
 
-nav a {
-    color: var(--primary-text-color);
-    margin: 0 10px;
-    text-decoration: none;
-}
-
-    nav a:hover {
-        color: var(--link-hover-color);
-    }
-
 main {
     padding: 20px;
-    flex-grow: 1;
     background-color: var(--secondary-background-color);
 }
 
-/* Фиксация футера внизу */
 footer {
     text-align: center;
     padding: 10px;
     background-color: var(--footer-background-color);
     color: var(--primary-text-color);
-    width: 100%;
-    margin-top: auto;
-    position: relative;
-    bottom: 0;
 }
 
-/* Стили для игр */
-#games-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-    padding: 20px;
-}
-
-.game {
+/* Пример стилей для карточек фильма */
+.film-card {
     background-color: var(--card-background-color);
     padding: 15px;
+    margin-bottom: 20px;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    transition: transform 0.3s ease;
     border: 1px solid var(--border-color);
-}
-
-    .game:hover {
-        transform: translateY(-5px);
-        background-color: var(--highlight-background-color);
-    }
-
-.game-image {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-}
-
-.game h3 {
-    margin: 10px 0;
-}
-
-.game p {
-    margin: 5px 0;
-}
-
-.game-link {
-    color: var(--link-color);
-    text-decoration: none;
-}
-
-    .game-link:hover {
-        color: var(--link-hover-color);
-    }
-
-input, button {
-    padding: 8px;
-    background-color: var(--secondary-background-color);
-    border: 1px solid var(--input-border-color);
-    color: var(--primary-text-color);
-}
-
-    input[type="text"] {
-        background-color: var(--input-background-color);
-    }
-
-    input[type="submit"], button {
-        cursor: pointer;
-        background-color: var(--button-background-color);
-    }
-
-        input[type="submit"]:hover, button:hover {
-            background-color: var(--button-hover-background-color);
-        }
-
-/* Стили для ссылок */
-a {
-    color: var(--link-color);
-}
-
-    a:hover {
-        color: var(--link-hover-color);
-    }
-
-/* Стили для кнопок с акцентами */
-button.accent {
-    background-color: var(--accent-color);
-    color: var(--primary-text-color);
-}
-
-    button.accent:hover {
-        background-color: var(--accent-hover-color);
-    }
-
-
-#edit-btn, #delete-btn {
-    margin-top: 20px;
-    padding: 10px;
-    width: 100%;
-    font-size: 1.2em;
-}
-
-form label {
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-form input[type="text"], form input[type="file"] {
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-    background-color: var(--input-background-color);
-    border: 1px solid var(--input-border-color);
 }

@@ -1,0 +1,22 @@
+﻿@page
+@model AspNetTasks.Pages.DeleteFilmModel
+@{
+    ViewData["Title"] = "Удалить фильм";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form method="post">
+    <div>
+        <label for="FilmId">Выберите фильм для удаления:</label>
+        <select id="FilmId" name="FilmId" required>
+            @foreach (var film in Model.Films)
+            {
+                <option value="@film.Id">@film.Name</option>
+            }
+        </select>
+    </div>
+    <div>
+        <button type="submit">Удалить фильм</button>
+    </div>
+</form>

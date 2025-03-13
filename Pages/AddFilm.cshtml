@@ -1,0 +1,29 @@
+﻿@page
+@model AspNetTasks.Pages.AddFilmModel
+@{
+    ViewData["Title"] = "Добавить новый фильм";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form method="post">
+    <div>
+        <label for="Name">Название фильма:</label>
+        <input type="text" id="Name" name="Name" required />
+    </div>
+    <div>
+        <label for="FilmMaker">Режиссер:</label>
+        <input type="text" id="FilmMaker" name="FilmMaker" required />
+    </div>
+    <div>
+        <label for="Style">Стиль:</label>
+        <input type="text" id="Style" name="Style" required />
+    </div>
+    <div>
+        <label for="Summary">Краткое описание:</label>
+        <textarea id="Summary" name="Summary" required></textarea>
+    </div>
+    <div>
+        <button type="submit">Добавить фильм</button>
+    </div>
+</form>

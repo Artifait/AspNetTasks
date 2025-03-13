@@ -1,0 +1,30 @@
+﻿@page
+@model AspNetTasks.Pages.AddSessionModel
+@{
+    ViewData["Title"] = "Добавить сеанс фильма";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form method="post">
+    <div>
+        <label for="FilmId">Выберите фильм:</label>
+        <select id="FilmId" name="FilmId" required>
+            @foreach (var film in Model.Films)
+            {
+                <option value="@film.Id">@film.Name</option>
+            }
+        </select>
+    </div>
+    <div>
+        <label for="StartTime">Время начала:</label>
+        <input type="datetime-local" id="StartTime" name="StartTime" required />
+    </div>
+    <div>
+        <label for="EndTime">Время конца:</label>
+        <input type="datetime-local" id="EndTime" name="EndTime" required />
+    </div>
+    <div>
+        <button type="submit">Добавить сеанс</button>
+    </div>
+</form>
