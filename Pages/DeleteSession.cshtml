@@ -3,20 +3,20 @@
 @{
     ViewData["Title"] = "Удалить сеанс";
 }
-
-<h1>@ViewData["Title"]</h1>
-
-<form method="post">
-    <div>
-        <label for="SessionId">Выберите сеанс для удаления:</label>
-        <select id="SessionId" name="SessionId" required>
-            @foreach (var session in Model.Sessions)
-            {
-                <option value="@session.Id">@session.Film.Name - @session.StartTime.ToString("HH:mm")</option>
-            }
-        </select>
-    </div>
-    <div>
-        <button type="submit">Удалить сеанс</button>
-    </div>
-</form>
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+    <form method="post" class="form">
+        <div class="form-group">
+            <label for="SessionId">Выберите сеанс для удаления:</label>
+            <select id="SessionId" name="SessionId" required class="form-control">
+                @foreach (var session in Model.Sessions)
+                {
+                    <option value="@session.Id">@session.Film.Name - @session.StartTime.ToString("HH:mm")</option>
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="button">Удалить сеанс</button>
+        </div>
+    </form>
+</div>

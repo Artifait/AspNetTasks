@@ -1,0 +1,15 @@
+﻿@page
+@model AspNetTasks.Pages.IndexModel
+@{
+    ViewData["Title"] = "Главная страница";
+}
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+    <nav>
+        <ul class="nav-list">
+            <li><a href="/FilmSchedule">Посмотреть расписание</a></li>
+            <li><a href="/AddFilm">Добавить новый фильм</a></li>
+            <li><a href="/AddSession">Добавить новый сеанс</a></li>
+        </ul>
+    </nav>
+</div>

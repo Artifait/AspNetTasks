@@ -3,27 +3,27 @@
 @{
     ViewData["Title"] = "Добавить новый фильм";
 }
-
-<h1>@ViewData["Title"]</h1>
-
-<form method="post">
-    <div>
-        <label for="Name">Название фильма:</label>
-        <input type="text" id="Name" name="Name" required />
-    </div>
-    <div>
-        <label for="FilmMaker">Режиссер:</label>
-        <input type="text" id="FilmMaker" name="FilmMaker" required />
-    </div>
-    <div>
-        <label for="Style">Стиль:</label>
-        <input type="text" id="Style" name="Style" required />
-    </div>
-    <div>
-        <label for="Summary">Краткое описание:</label>
-        <textarea id="Summary" name="Summary" required></textarea>
-    </div>
-    <div>
-        <button type="submit">Добавить фильм</button>
-    </div>
-</form>
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+    <form method="post" class="form">
+        <div class="form-group">
+            <label for="Name">Название фильма:</label>
+            <input type="text" id="Name" name="Name" required class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="FilmMaker">Режиссер:</label>
+            <input type="text" id="FilmMaker" name="FilmMaker" required class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="Style">Стиль:</label>
+            <input type="text" id="Style" name="Style" required class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="Summary">Краткое описание:</label>
+            <textarea id="Summary" name="Summary" required class="form-control"></textarea>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="button">Добавить фильм</button>
+        </div>
+    </form>
+</div>
