@@ -43,7 +43,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         const gameId = urlParams.get('id');
 
-        // Fetch existing game details for editing
         fetch(`/games/${gameId}`)
             .then(response => response.json())
             .then(game => {
@@ -52,7 +51,6 @@
                 document.getElementById('author').value = game.author;
             });
 
-        // Handle form submission for editing the game
         document.getElementById('edit-game-form').addEventListener('submit', function (event) {
             event.preventDefault();
 

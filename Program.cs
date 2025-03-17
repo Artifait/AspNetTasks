@@ -63,24 +63,47 @@ app.MapPost("/games", async (Game game, GameStoreContext context) =>
     return Results.Created($"/games/{game.Id}", game);
 });
 
-app.MapPut("/games/{id}", async (int id, Game game, GameStoreContext context) =>
+app.MapPut("/games/{id}", async (HttpRequest request, int id, GameStoreContext context) =>
 {
     var existingGame = await context.Games.FindAsync(id);
-
     if (existingGame is null)
     {
         return Results.NotFound();
     }
 
-    existingGame.Name = game.Name;
-    existingGame.Genre = game.Genre;
-    existingGame.Author = game.Author;
-    existingGame.FileKey = game.FileKey;
+    var form = await request.ReadFormAsync();
+    existingGame.Name = form["name"];
+    existingGame.Genre = form["genre"];
+    existingGame.Author = form["author"];
+
+    var file = form.Files.FirstOrDefault();
+    if (file != null)
+    {
+        var fileExtension = Path.GetExtension(file.FileName);
+        var newFileKey = Guid.NewGuid().ToString() + fileExtension;
+        var newFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files", newFileKey);
+
+        using (var stream = new FileStream(newFilePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        if (!string.IsNullOrEmpty(existingGame.FileKey))
+        {
+            var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files", existingGame.FileKey);
+            if (File.Exists(oldFilePath))
+            {
+                File.Delete(oldFilePath);
+            }
+        }
+        existingGame.FileKey = newFileKey;
+    }
 
     await context.SaveChangesAsync();
 
-    return Results.NoContent();
+    return Results.Ok(existingGame);
 });
+
 
 app.MapDelete("/games/{id}", async (int id, GameStoreContext context) =>
 {
@@ -112,23 +135,20 @@ app.MapPost("/upload", async (HttpRequest request, GameStoreContext context) =>
     // Получаем расширение файла
     var fileExtension = Path.GetExtension(file.FileName);
 
-    // Генерация уникального ключа для файла с расширением
     var fileKey = Guid.NewGuid().ToString() + fileExtension;
     var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "files", fileKey);
 
-    // Сохранение файла на сервере
     using (var stream = new FileStream(filePath, FileMode.Create))
     {
         await file.CopyToAsync(stream);
     }
 
-    // Создание новой записи в базе данных для игры
     var game = new Game
     {
-        Name = name,       // Название игры из формы
-        Genre = genre,     // Жанр игры из формы
-        Author = author,   // Автор игры из формы
-        FileKey = fileKey, // Уникальный ключ для файла с расширением
+        Name = name,      
+        Genre = genre,     
+        Author = author,   
+        FileKey = fileKey, 
     };
 
     context.Games.Add(game);
