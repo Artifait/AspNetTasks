@@ -1,13 +1,28 @@
-﻿@model AspNetTasks.ViewModels.LoginViewModel
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Вход";
+}
 
-<h2>Login</h2>
+<h2>Вход</h2>
 
 <form asp-action="Login" method="post">
-    <label>Username</label>
-    <input asp-for="Username" />
-
-    <label>Password</label>
-    <input asp-for="Password" type="password" />
-
-    <button type="submit">Login</button>
+    <div>
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email" required />
+    </div>
+    <div>
+        <label for="password">Пароль:</label>
+        <input type="password" name="password" id="password" required />
+    </div>
+    <button type="submit">Войти</button>
 </form>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="error">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <p>@error.ErrorMessage</p>
+        }
+    </div>
+}

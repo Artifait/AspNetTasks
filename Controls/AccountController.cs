@@ -1,111 +1,115 @@
 ﻿using AspNetTasks.Models;
-using AspNetTasks.ViewModels;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using System.Text;
+using System.Security.Cryptography;
 
 namespace AspNetTasks.Controls
 {
     public class AccountController : Controller
     {
-        private readonly ApplicationContext _context;
-
-        public AccountController(ApplicationContext context)
+        private readonly IUserService _userService;
+        public AccountController(IUserService userService)
         {
-            _context = context;
+            _userService = userService;
         }
 
-        // Страница регистрации
-        [HttpGet]
-        public IActionResult Register() => View();
-
-        [HttpPost]
-        public async Task<IActionResult> Register(RegisterViewModel model)
+        // GET: /Account/Login
+        public IActionResult Login()
         {
-            if (ModelState.IsValid)
+            return View();
+        }
+
+        // POST: /Account/Login
+        [HttpPost]
+        public async Task<IActionResult> Login(string email, string password, string? returnUrl = null)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
-                // Хешируем пароль
-                var passwordHash = HashPassword(model.Password);
-
-                var user = new User
-                {
-                    Username = model.Username,
-                    FullName = model.FullName,
-                    PasswordHash = passwordHash
-                };
-
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction("Login");
+                ModelState.AddModelError("", "Email и пароль обязательны");
+                return View();
+            }
+            // Вычисляем хэш введённого пароля
+            var passwordHash = ComputeSha256Hash(password);
+            var user = await _userService.GetUserByEmailAsync(email);
+            if (user == null || user.PasswordHash != passwordHash)
+            {
+                ModelState.AddModelError("", "Неверные учётные данные");
+                return View();
             }
 
-            return View(model);
-        }
+            // Формирование набора клаймов
+            var claims = new List<Claim>
+              {
+                   new Claim(ClaimTypes.Name, user.Email),
+                   new Claim(ClaimTypes.Role, user.Role)
+              };
 
-        // Страница логина
-        [HttpGet]
-        public IActionResult Login() => View();
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, claimsPrincipal);
 
-        [HttpPost]
-        public async Task<IActionResult> Login(LoginViewModel model)
-        {
-            if (ModelState.IsValid)
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
-                var user = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Username == model.Username);
-
-                if (user != null && VerifyPassword(model.Password, user.PasswordHash))
-                {
-                    // Успешный вход, сохраняем сессию
-                    HttpContext.Session.SetInt32("UserId", user.Id);
-                    return RedirectToAction("Index", "Game");
-                }
-
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Redirect(returnUrl);
             }
-            return View(model);
-        }
-
-        // Логаут
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Remove("UserId");
             return RedirectToAction("Index", "Home");
         }
 
-        private string HashPassword(string password)
+        // GET: /Account/Register
+        public IActionResult Register()
         {
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
+            return View();
         }
 
-        private bool VerifyPassword(string password, string storedHash)
-        {
-            var hash = HashPassword(password);
-            return hash == storedHash;
-        }
-
-        [HttpGet]
-        public IActionResult ChangePassword() => View();
-
+        // POST: /Account/Register
         [HttpPost]
-        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        public async Task<IActionResult> Register(string email, string password)
         {
-            if (ModelState.IsValid)
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == "root");
-                if (user != null)
-                {
-                    user.PasswordHash = HashPassword(model.NewPassword);
-                    _context.Users.Update(user);
-                    await _context.SaveChangesAsync();
-                    return RedirectToAction("Login");
-                }
+                ModelState.AddModelError("", "Email и пароль обязательны");
+                return View();
             }
-            return View(model);
+            var passwordHash = ComputeSha256Hash(password);
+            var user = new User
+            {
+                Email = email,
+                PasswordHash = passwordHash,
+                Role = "user" // стандартная роль для новых пользователей
+            };
+            await _userService.CreateUserAsync(user);
+            return RedirectToAction("Login");
         }
 
+        // GET: /Account/Logout
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction("Index", "Home");
+        }
+
+        // Простой пример страницы AccessDenied
+        public IActionResult AccessDenied()
+        {
+            return Content("Access Denied");
+        }
+
+        // Метод вычисления SHA256 хэша
+        private string ComputeSha256Hash(string rawData)
+        {
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(rawData));
+                StringBuilder builder = new StringBuilder();
+                foreach (var b in bytes)
+                {
+                    builder.Append(b.ToString("x2"));
+                }
+                return builder.ToString();
+            }
+        }
     }
 }

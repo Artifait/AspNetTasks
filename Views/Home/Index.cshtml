@@ -1,14 +1,85 @@
 ﻿@{
-    Layout = "_Layout";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Главная";
 }
 
-<h2>Welcome to the Game Store</h2>
+<!-- Фон с анимированной спиралью -->
+<div class="spiral-background">
+    <div class="canvas">
+        <div class="group group--one">
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+        </div>
+        <div class="group group--two">
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+            <div class="dot dot--aqua"></div>
+            <div class="dot dot--gold"></div>
+            <div class="dot dot--tomato"></div>
+        </div>
+    </div>
+</div>
 
-@if (ViewData["IsAuthenticated"] != null && (bool)ViewData["IsAuthenticated"])
-{
-    <p>Hello, @ViewData["Username"]! You are logged in. <a href="@Url.Action("Logout", "Home")">Logout</a></p>
-}
-else
-{
-    <p><a href="@Url.Action("Register", "Home")">Register</a> | <a href="@Url.Action("Login", "Home")">Login</a></p>
-}
+<div class="home-page">
+    @if (!(User.Identity?.IsAuthenticated ?? false))
+    {
+        <div class="welcome-message" style="text-align:center; margin-top:100px;">
+            <h2>Добро пожаловать!</h2>
+            <p>
+                Пожалуйста, <a href="@Url.Action("Login", "Account")">войдите</a> или
+                <a href="@Url.Action("Register", "Account")">зарегистрируйтесь</a>.
+            </p>
+        </div>
+    }
+    else
+    {
+        <p>Здравствуйте, @User.Identity.Name!</p>
+    }
+</div>

@@ -1,8 +1,9 @@
-using AspNetTasks.Models;
+using AspNetTasks;
+using AspNetTasks.Data;
+using AspNetTasks.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using MyApp.Data;
-using MyApp.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 

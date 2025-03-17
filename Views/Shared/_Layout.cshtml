@@ -1,42 +1,36 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Store</title>
-    <link href="~/css/styles.css" rel="stylesheet" />
+    <title>@ViewData["Title"] - MyApp</title>
+    <link rel="stylesheet" href="~/css/site.css" />
 </head>
-<body class="dark-theme">
+<body>
     <header>
-        <div class="logo">
-            <a href="@Url.Action("Index", "Home")">Game Store</a>
-        </div>
-        <nav>
-            <ul>
-                <li><a href="@Url.Action("Index", "Home")">Home</a></li>
-                <li><a href="@Url.Action("Index", "Game")">Games</a></li>
-
-                @if (ViewData["IsAuthenticated"] != null && (bool)ViewData["IsAuthenticated"])
+        <div class="container">
+            <h1>MyApp</h1>
+            <div class="user-info">
+                @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <li>Hello, @ViewData["Username"]! <a href="@Url.Action("Logout", "Home")">Logout</a></li>
+                    <span>Вы вошли как: @User.Identity.Name</span>
+                    <a href="@Url.Action("Logout", "Account")">Выход</a>
                 }
                 else
                 {
-                    <li><a href="@Url.Action("Login", "Home")">Login</a></li>
-                    <li><a href="@Url.Action("Register", "Home")">Register</a></li>
+                    <a href="@Url.Action("Login", "Account")">Вход</a>
+                    <a href="@Url.Action("Register", "Account")">Регистрация</a>
                 }
-            </ul>
-        </nav>
+            </div>
+        </div>
     </header>
-
-    <main>
+    <main class="container">
         @RenderBody()
     </main>
-
     <footer>
-        <p>&copy; 2025 Game Store. All rights reserved.</p>
+        <div class="container">
+            <p>&copy; @DateTime.Now.Year - MyApp</p>
+        </div>
     </footer>
-
-    <script src="~/js/scripts.js"></script>
 </body>
 </html>

@@ -1,0 +1,284 @@
+﻿/* Сброс стилей и базовая настройка тёмной темы */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121212;
+    color: #e0e0e0;
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+
+/* Заголовки и текст */
+h1, h2, h3, h4, h5, h6 {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+/* Ссылки */
+a {
+    color: #bb86fc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+    a:hover {
+        color: #9b67d0;
+        text-decoration: underline;
+    }
+
+/* Контейнер */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Шапка сайта */
+header {
+    background: #1f1f1f;
+    padding: 20px 0;
+    border-bottom: 1px solid #333;
+}
+
+    header .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    header h1 {
+        font-size: 2rem;
+        color: #fff;
+    }
+
+    header .user-info a {
+        margin-left: 15px;
+    }
+
+/* Основной контент */
+main {
+    padding: 40px 0;
+    min-height: 80vh;
+}
+
+/* Подвал */
+footer {
+    background: #1f1f1f;
+    padding: 10px 0;
+    text-align: center;
+    border-top: 1px solid #333;
+}
+
+/* Стилизация форм */
+form {
+    max-width: 400px;
+    margin: 40px auto;
+    background: #1e1e1e;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+    form div {
+        margin-bottom: 15px;
+    }
+
+    form label {
+        display: block;
+        margin-bottom: 5px;
+        color: #fff;
+    }
+
+    form input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #333;
+        border-radius: 4px;
+        background: #2c2c2c;
+        color: #fff;
+    }
+
+        form button, form input[type="submit"] {
+            background: #bb86fc;
+            border: none;
+            padding: 10px 20px;
+            color: #121212;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+            form button:hover, form input[type="submit"]:hover {
+                background: #9b67d0;
+            }
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    header .container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Дополнительная анимация появления */
+.welcome-message {
+    animation: fadeInUp 1.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Стили для анимированной спирали */
+.spiral-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: #171723; /* Фон под спиралью */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.canvas {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-width: 500px;
+    max-height: 500px;
+}
+
+.group {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+@keyframes dot-elastic-x {
+    0%, 100% {
+        opacity: 0.5;
+        transform: translateX(0) scale(0.75);
+        animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    25% {
+        opacity: 0.75;
+        transform: translateX(600%) scale(1);
+        animation-timing-function: cubic-bezier(0.55, 0.085, 0.68, 0.53);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translateX(0) scale(1.5);
+        animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    75% {
+        opacity: 0.75;
+        transform: translateX(-600%) scale(1);
+        animation-timing-function: cubic-bezier(0.55, 0.085, 0.68, 0.53);
+    }
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    animation-name: dot-elastic-x;
+    animation-duration: 1.25s;
+    animation-iteration-count: infinite;
+    position: relative;
+}
+
+    .dot::before {
+        content: '';
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+    }
+
+.group--one .dot {
+    animation-direction: normal;
+}
+
+.group--two .dot {
+    animation-direction: reverse;
+}
+
+/* Пример ручного задания задержек для первых 10 точек (при использовании Sass можно сгенерировать цикл от 1 до 72) */
+.dot:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.dot:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+.dot:nth-child(5) {
+    animation-delay: 0.5s;
+}
+
+.dot:nth-child(6) {
+    animation-delay: 0.6s;
+}
+
+.dot:nth-child(7) {
+    animation-delay: 0.7s;
+}
+
+.dot:nth-child(8) {
+    animation-delay: 0.8s;
+}
+
+.dot:nth-child(9) {
+    animation-delay: 0.9s;
+}
+
+.dot:nth-child(10) {
+    animation-delay: 1.0s;
+}
+/* Добавьте аналогичные правила для остальных элементов, если необходимо */
+
+/* Цветовые классы для точек */
+.dot--aqua::before {
+    background-color: aqua;
+}
+
+.dot--gold::before {
+    background-color: gold;
+}
+
+.dot--tomato::before {
+    background-color: tomato;
+}
+
