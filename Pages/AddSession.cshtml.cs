@@ -7,21 +7,21 @@ namespace AspNetTasks.Pages
     [IgnoreAntiforgeryToken]
     public class AddSessionModel : PageModel
     {
-        private readonly CinemaContext _context;
+        private readonly IFilmRepository _context;
 
         [BindProperty]
         public FilmSession FilmSession { get; set; }
 
         public List<Film> Films { get; set; }
 
-        public AddSessionModel(CinemaContext context)
+        public AddSessionModel(IFilmRepository context)
         {
             _context = context;
         }
 
-        public void OnGet()
+        public async void OnGet()
         {
-            Films = _context.Films.ToList();
+            Films = (await _context.GetAllFilmsAsync()).ToList();
         }
 
         public async Task<IActionResult> OnPostAsync()

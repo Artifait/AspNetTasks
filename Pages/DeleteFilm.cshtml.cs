@@ -6,21 +6,21 @@ namespace AspNetTasks.Pages
 {
     public class DeleteFilmModel : PageModel
     {
-        private readonly CinemaContext _context;
+        private readonly IFilmRepository _context;
 
         [BindProperty]
         public int FilmId { get; set; }
 
         public List<Film> Films { get; set; }
 
-        public DeleteFilmModel(CinemaContext context)
+        public DeleteFilmModel(IFilmRepository context)
         {
             _context = context;
         }
 
-        public void OnGet()
+        public async void OnGet()
         {
-            Films = _context.Films.ToList();
+            Films = (await _context.GetAllFilmsAsync()).ToList();
         }
 
         public async Task<IActionResult> OnPostAsync()

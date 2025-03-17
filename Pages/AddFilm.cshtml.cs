@@ -7,12 +7,12 @@ namespace AspNetTasks.Pages
     [IgnoreAntiforgeryToken]
     public class AddFilmModel : PageModel
     {
-        private readonly CinemaContext _context;
+        private readonly IFilmRepository _context;
 
         [BindProperty]
         public Film Film { get; set; }
 
-        public AddFilmModel(CinemaContext context)
+        public AddFilmModel(IFilmRepository context)
         {
             _context = context;
         }

@@ -6,22 +6,20 @@ namespace AspNetTasks.Pages
 {
     public class FilmScheduleModel : PageModel
     {
-        private readonly CinemaContext _context;
+        private readonly IFilmRepository _context;
 
-        public FilmScheduleModel(CinemaContext context)
+        public FilmScheduleModel(IFilmRepository context)
         {
             _context = context;
         }
 
         // Список фильмов с сеансами
-        public List<Film> Films { get; set; } = new List<Film>();
+        public List<Film> Films { get; set; } = [];
 
         public async Task OnGetAsync()
         {
             // Загрузка фильмов с их сеансами
-            Films = await _context.Films
-                .Include(f => f.Sessions)
-                .ToListAsync();
+            Films = (await _context.GetAllFilmsAsync()).ToList();
         }
     }
 }
