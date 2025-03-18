@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace AspNetTasks.Pages
 {
+    [IgnoreAntiforgeryToken]
     public class DeleteFilmModel : PageModel
     {
         private readonly IFilmRepository _context;
