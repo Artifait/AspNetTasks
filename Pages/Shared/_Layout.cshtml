@@ -141,6 +141,27 @@
             padding: 15px;
             text-align: center;
         }
+
+        nav .dropdown {
+            display: none;
+            position: absolute;
+            background-color: var(--secondary-background-color);
+            list-style: none;
+            padding: 10px;
+        }
+
+        nav li:hover .dropdown {
+            display: block;
+        }
+
+        nav .dropdown li {
+            padding: 5px;
+        }
+
+            nav .dropdown li a {
+                color: var(--primary-text-color);
+            }
+
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-..." crossorigin="anonymous" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -152,12 +173,19 @@
     <nav>
         <ul class="nav-list">
             <li><a href="/Index">Расписание</a></li>
-            <li><a href="/AddFilm">Добавить фильм</a></li>
-            <li><a href="/AddSession">Добавить сеанс</a></li>
+            <li><a href="/FilmSearch">Поиск фильмов</a></li>
+            <li>
+                <a href="#">Управление</a>
+                <ul class="dropdown">
+                    <li><a href="/AddFilm">Добавить фильм</a></li>
+                    <li><a href="/AddSession">Добавить сеанс</a></li>
+                </ul>
+            </li>
             <li><a href="/DeleteFilm">Удалить фильм</a></li>
             <li><a href="/DeleteSession">Удалить сеанс</a></li>
         </ul>
     </nav>
+
     <main>
         @RenderBody()
     </main>

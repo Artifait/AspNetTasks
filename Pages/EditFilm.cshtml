@@ -1,0 +1,31 @@
+﻿@page "{id:int}"
+@model AspNetTasks.Pages.EditFilmModel
+@{
+    ViewData["Title"] = "Редактировать фильм";
+}
+
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+
+    <form method="post" class="form">
+        <input type="hidden" name="Film.Id" value="@Model.Film.Id" />
+
+        <div class="form-group">
+            <label for="Name">Название</label>
+            <input type="text" id="Name" name="Film.Name" class="form-control" value="@Model.Film.Name" />
+        </div>
+        <div class="form-group">
+            <label for="FilmMaker">Режиссер</label>
+            <input type="text" id="FilmMaker" name="Film.FilmMaker" class="form-control" value="@Model.Film.FilmMaker" />
+        </div>
+        <div class="form-group">
+            <label for="Style">Стиль</label>
+            <input type="text" id="Style" name="Film.Style" class="form-control" value="@Model.Film.Style" />
+        </div>
+        <div class="form-group">
+            <label for="Summary">Описание</label>
+            <textarea id="Summary" name="Film.Summary" class="form-control">@Model.Film.Summary</textarea>
+        </div>
+        <button type="submit" class="button">Сохранить изменения</button>
+    </form>
+</div>

@@ -52,5 +52,58 @@ namespace AspNetTasks.Models
         {
             return await _context.FilmSessions.Include(s => s.Film).ToListAsync();
         }
+
+        public async Task<Film?> GetFilmAsync(int id)
+        {
+            return await _context.Films
+                                 .Include(f => f.Sessions)
+                                 .FirstOrDefaultAsync(f => f.Id == id);
+        }
+
+        public async Task UpdateFilmAsync(Film film)
+        {
+            var existingFilm = await _context.Films.FindAsync(film.Id);
+            if (existingFilm != null)
+            {
+                existingFilm.Name = film.Name;
+                existingFilm.FilmMaker = film.FilmMaker;
+                existingFilm.Style = film.Style;
+                existingFilm.Summary = film.Summary;
+
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<IEnumerable<Film>> SearchFilmsAsync(SearchFilter filter)
+        {
+            IQueryable<Film> query = _context.Films.Include(f => f.Sessions);
+
+            if (!string.IsNullOrEmpty(filter.Name))
+            {
+                query = query.Where(f => f.Name.Contains(filter.Name));
+            }
+
+            if (!string.IsNullOrEmpty(filter.FilmMaker))
+            {
+                query = query.Where(f => f.FilmMaker.Contains(filter.FilmMaker));
+            }
+
+            if (!string.IsNullOrEmpty(filter.Style))
+            {
+                query = query.Where(f => f.Style.Contains(filter.Style));
+            }
+
+            if (!string.IsNullOrEmpty(filter.Summary))
+            {
+                query = query.Where(f => f.Summary.Contains(filter.Summary));
+            }
+
+            if (filter.SessionStartDate.HasValue && filter.SessionEndDate.HasValue)
+            {
+                query = query.Where(f => f.Sessions.Any(s => s.StartTime >= filter.SessionStartDate && s.EndTime <= filter.SessionEndDate));
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }

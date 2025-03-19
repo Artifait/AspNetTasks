@@ -11,33 +11,8 @@
             <h2>@movie.Name</h2>
             <p><strong>Режиссер:</strong> @movie.FilmMaker</p>
             <p><strong>Стиль:</strong> @movie.Style</p>
-            <p><strong>Краткое описание:</strong> @movie.Summary</p>
 
-            <h3>Сеансы</h3>
-            @if (movie.Sessions.Any())
-            {
-                <table class="sessions-table">
-                    <thead>
-                        <tr>
-                            <th>Начало</th>
-                            <th>Окончание</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var session in movie.Sessions)
-                        {
-                            <tr>
-                                <td>@session.StartTime.ToString("dd.MM.yyyy HH:mm")</td>
-                                <td>@session.EndTime.ToString("dd.MM.yyyy HH:mm")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-            else
-            {
-                <p>Нет доступных сеансов.</p>
-            }
+            <a href="/FilmDetails/@movie.Id" class="button">Подробнее</a>
         </div>
     }
 </div>

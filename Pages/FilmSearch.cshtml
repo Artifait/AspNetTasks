@@ -1,0 +1,76 @@
+﻿@page
+@model AspNetTasks.Pages.FilmSearchModel
+@{
+    ViewData["Title"] = "Поиск фильмов";
+}
+
+<div class="container">
+    <h1>@ViewData["Title"]</h1>
+
+    <!-- Форма поиска фильмов -->
+    <form method="get" class="form">
+        <div class="form-group">
+            <label for="Name">Название</label>
+            <input type="text" id="Name" name="Filter.Name" class="form-control" value="@Model.Filter.Name" />
+        </div>
+        <div class="form-group">
+            <label for="FilmMaker">Режиссер</label>
+            <input type="text" id="FilmMaker" name="Filter.FilmMaker" class="form-control" value="@Model.Filter.FilmMaker" />
+        </div>
+        <div class="form-group">
+            <label for="Style">Стиль</label>
+            <input type="text" id="Style" name="Filter.Style" class="form-control" value="@Model.Filter.Style" />
+        </div>
+        <div class="form-group">
+            <label for="Summary">Описание</label>
+            <input type="text" id="Summary" name="Filter.Summary" class="form-control" value="@Model.Filter.Summary" />
+        </div>
+        <div class="form-group">
+            <label for="SessionStartDate">Дата начала сеанса</label>
+            <input type="date" id="SessionStartDate" name="Filter.SessionStartDate" class="form-control" value="@Model.Filter.SessionStartDate?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="form-group">
+            <label for="SessionEndDate">Дата окончания сеанса</label>
+            <input type="date" id="SessionEndDate" name="Filter.SessionEndDate" class="form-control" value="@Model.Filter.SessionEndDate?.ToString("yyyy-MM-dd")" />
+        </div>
+        <button type="submit" class="button">Поиск</button>
+    </form>
+
+    <h2>Результаты поиска</h2>
+    <div>
+        @if (Model.Films.Any())
+        {
+            @foreach (var film in Model.Films)
+            {
+                <div class="movie-info">
+                    <h3>@film.Name</h3>
+                    <p><strong>Режиссер:</strong> @film.FilmMaker</p>
+                    <p><strong>Стиль:</strong> @film.Style</p>
+                    <p><strong>Описание:</strong> @film.Summary</p>
+
+                    <h4>Сеансы:</h4>
+                    @if (film.Sessions.Any())
+                    {
+                        <ul>
+                            @foreach (var session in film.Sessions)
+                            {
+                                <li>
+                                    <strong>Начало:</strong> @session.StartTime.ToString("dd.MM.yyyy HH:mm") <br />
+                                    <strong>Окончание:</strong> @session.EndTime.ToString("dd.MM.yyyy HH:mm")
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p>Нет доступных сеансов.</p>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <p>Фильмы не найдены.</p>
+        }
+    </div>
+</div>

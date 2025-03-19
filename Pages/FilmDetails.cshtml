@@ -1,0 +1,40 @@
+﻿@page "{id:int}"
+@model AspNetTasks.Pages.FilmDetailsModel
+@{
+    ViewData["Title"] = Model.Film.Name;
+}
+
+<div class="container">
+    <h1>@Model.Film.Name</h1>
+    <p><strong>Режиссер:</strong> @Model.Film.FilmMaker</p>
+    <p><strong>Стиль:</strong> @Model.Film.Style</p>
+    <p><strong>Описание:</strong> @Model.Film.Summary</p>
+
+    <h3>Сеансы</h3>
+    @if (Model.Film.Sessions.Any())
+    {
+        <table class="sessions-table">
+            <thead>
+                <tr>
+                    <th>Начало</th>
+                    <th>Окончание</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var session in Model.Film.Sessions)
+                {
+                    <tr>
+                        <td>@session.StartTime.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>@session.EndTime.ToString("dd.MM.yyyy HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Нет доступных сеансов.</p>
+    }
+
+    <a href="/EditFilm/@Model.Film.Id" class="button">Редактировать фильм</a>
+</div>
