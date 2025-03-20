@@ -8,6 +8,7 @@ builder.Services.AddDbContext<CinemaContext>(options =>
     options.UseSqlite("Data Source=Cinema.db"));
 
 builder.Services.AddScoped<IFilmRepository, FilmRepository>();
+builder.Services.AddTransient<ISearchFilter, SearchFilter>();
 
 builder.Services.AddRazorPages();
 

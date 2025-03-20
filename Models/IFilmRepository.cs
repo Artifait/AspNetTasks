@@ -1,4 +1,6 @@
-﻿namespace AspNetTasks.Models
+﻿using System.Linq.Expressions;
+
+namespace AspNetTasks.Models
 {
     public interface IFilmRepository
     {
@@ -13,6 +15,6 @@
         Task RemoveFilmSessionAsync(int sessionId);
 
         Task UpdateFilmAsync(Film film);
-        Task<IEnumerable<Film>> SearchFilmsAsync(SearchFilter filter);
+        Task<IEnumerable<Film>> SearchFilmsAsync(Expression<Func<Film, bool>> filterExpression);
     }
 }

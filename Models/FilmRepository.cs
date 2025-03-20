@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace AspNetTasks.Models
 {
@@ -74,34 +75,10 @@ namespace AspNetTasks.Models
             }
         }
 
-        public async Task<IEnumerable<Film>> SearchFilmsAsync(SearchFilter filter)
+        public async Task<IEnumerable<Film>> SearchFilmsAsync(Expression<Func<Film, bool>> filterExpression)
         {
-            IQueryable<Film> query = _context.Films.Include(f => f.Sessions);
-
-            if (!string.IsNullOrEmpty(filter.Name))
-            {
-                query = query.Where(f => f.Name.Contains(filter.Name));
-            }
-
-            if (!string.IsNullOrEmpty(filter.FilmMaker))
-            {
-                query = query.Where(f => f.FilmMaker.Contains(filter.FilmMaker));
-            }
-
-            if (!string.IsNullOrEmpty(filter.Style))
-            {
-                query = query.Where(f => f.Style.Contains(filter.Style));
-            }
-
-            if (!string.IsNullOrEmpty(filter.Summary))
-            {
-                query = query.Where(f => f.Summary.Contains(filter.Summary));
-            }
-
-            if (filter.SessionStartDate.HasValue && filter.SessionEndDate.HasValue)
-            {
-                query = query.Where(f => f.Sessions.Any(s => s.StartTime >= filter.SessionStartDate && s.EndTime <= filter.SessionEndDate));
-            }
+            IQueryable<Film> query = _context.Films.Include(f => f.Sessions)
+                                                   .Where(filterExpression);
 
             return await query.ToListAsync();
         }

@@ -1,38 +1,60 @@
 ﻿@page
 @model AspNetTasks.Pages.FilmSearchModel
+@using System.Reflection
 @{
     ViewData["Title"] = "Поиск фильмов";
+    // Получаем все публичные свойства фильтра
+    var filterProperties = Model.Filter.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.SetProperty);
 }
 
 <div class="container">
     <h1>@ViewData["Title"]</h1>
-
     <!-- Форма поиска фильмов -->
     <form method="get" class="form">
-        <div class="form-group">
-            <label for="Name">Название</label>
-            <input type="text" id="Name" name="Filter.Name" class="form-control" value="@Model.Filter.Name" />
-        </div>
-        <div class="form-group">
-            <label for="FilmMaker">Режиссер</label>
-            <input type="text" id="FilmMaker" name="Filter.FilmMaker" class="form-control" value="@Model.Filter.FilmMaker" />
-        </div>
-        <div class="form-group">
-            <label for="Style">Стиль</label>
-            <input type="text" id="Style" name="Filter.Style" class="form-control" value="@Model.Filter.Style" />
-        </div>
-        <div class="form-group">
-            <label for="Summary">Описание</label>
-            <input type="text" id="Summary" name="Filter.Summary" class="form-control" value="@Model.Filter.Summary" />
-        </div>
-        <div class="form-group">
-            <label for="SessionStartDate">Дата начала сеанса</label>
-            <input type="date" id="SessionStartDate" name="Filter.SessionStartDate" class="form-control" value="@Model.Filter.SessionStartDate?.ToString("yyyy-MM-dd")" />
-        </div>
-        <div class="form-group">
-            <label for="SessionEndDate">Дата окончания сеанса</label>
-            <input type="date" id="SessionEndDate" name="Filter.SessionEndDate" class="form-control" value="@Model.Filter.SessionEndDate?.ToString("yyyy-MM-dd")" />
-        </div>
+        @foreach (var prop in filterProperties)
+        {
+            // Если свойство не может быть установлено, пропускаем его
+            if (!prop.CanWrite)
+            {
+                continue;
+            }
+
+            var propName = prop.Name;
+            var propValue = prop.GetValue(Model.Filter);
+            string inputType = "text";
+
+            var propType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+
+            if (propType == typeof(DateTime))
+            {
+                inputType = "date";
+                if (propValue != null)
+                {
+                    propValue = ((DateTime)propValue).ToString("yyyy-MM-dd");
+                }
+            }
+            else if (propType.Name == "DateOnly")
+            {
+                inputType = "date";
+                if (propValue != null)
+                {
+                    propValue = propValue.ToString();
+                }
+            }
+            else if (propType == typeof(int) || propType == typeof(long))
+            {
+                inputType = "number";
+            }
+            else if (propType == typeof(float) || propType == typeof(double) || propType == typeof(decimal))
+            {
+                inputType = "number";
+            }
+
+            <div class="form-group">
+                <label for="@propName">@propName</label>
+                <input type="@inputType" id="@propName" name="Filter.@propName" class="form-control" value="@(propValue ?? "")" />
+            </div>
+        }
         <button type="submit" class="button">Поиск</button>
     </form>
 
