@@ -1,15 +1,9 @@
-﻿
+﻿using AspNetTasks.Application;
+using AspNetTasks.DataAccess.Entities;
 using System.Linq.Expressions;
 
-namespace AspNetTasks.Models
+namespace AspNetTasks.DataAccess.Filters
 {
-    public delegate bool FilmFilterDelegate(Film film);
-    public interface ISearchFilter
-    {
-        bool IsMatch(Film film);
-        Expression<Func<Film, bool>> Filter { get; }
-    }
-
     public class SearchFilter : ISearchFilter
     {
         public string? Name { get; set; }

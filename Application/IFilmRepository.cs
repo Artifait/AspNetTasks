@@ -1,6 +1,7 @@
-﻿using System.Linq.Expressions;
+﻿using AspNetTasks.DataAccess.Entities;
+using System.Linq.Expressions;
 
-namespace AspNetTasks.Models
+namespace AspNetTasks.Application
 {
     public interface IFilmRepository
     {

@@ -134,3 +134,23 @@ footer {
     padding: 15px;
     text-align: center;
 }
+
+nav .dropdown {
+    display: none;
+    position: absolute;
+    background-color: var(--secondary-background-color);
+    list-style: none;
+    padding: 10px;
+}
+
+nav li:hover .dropdown {
+    display: block;
+}
+
+nav .dropdown li {
+    padding: 5px;
+}
+
+    nav .dropdown li a {
+        color: var(--primary-text-color);
+    }

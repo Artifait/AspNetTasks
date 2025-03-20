@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AspNetTasks.Application;
+using AspNetTasks.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace AspNetTasks.Models
+namespace AspNetTasks.DataAccess.Repositories
 {
     public class FilmRepository : IFilmRepository
     {
@@ -11,7 +13,7 @@ namespace AspNetTasks.Models
         {
             _context = context;
         }
-
+        
         public async Task AddFilmAsync(Film film)
         {
             await _context.Films.AddAsync(film);

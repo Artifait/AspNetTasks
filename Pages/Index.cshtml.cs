@@ -1,4 +1,5 @@
-using AspNetTasks.Models;
+using AspNetTasks.Application;
+using AspNetTasks.DataAccess.Entities;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 

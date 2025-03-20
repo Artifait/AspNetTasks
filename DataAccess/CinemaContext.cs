@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AspNetTasks.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 
-namespace AspNetTasks.Models
+namespace AspNetTasks.DataAccess
 {
     public class CinemaContext : DbContext
     {

@@ -1,26 +1,34 @@
-using AspNetTasks.Models;
+using AspNetTasks.Application;
+using AspNetTasks.DataAccess.Entities;
+using AspNetTasks.DataAccess.Filters;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace AspNetTasks.Pages
 {
     public class FilmSearchModel : PageModel
     {
-        private readonly IFilmRepository _repository;
+        private readonly IFilmRepository _filmRepository;
 
-        public FilmSearchModel(IFilmRepository repository, ISearchFilter filter)
+        public FilmSearchModel(IFilmRepository filmRepository)
         {
-            _repository = repository;
-            Filter = filter;
+            _filmRepository = filmRepository;
+            Filter = new SearchFilter();
         }
 
-        public List<Film> Films { get; set; } = [];
-        public ISearchFilter Filter { get; set; } 
-        
+        [BindProperty(SupportsGet = true)]
+        public SearchFilter Filter { get; set; }
+
+        public IEnumerable<Film> Films { get; set; } = [];
+
         public async Task OnGetAsync()
         {
-            Films = (await _repository.SearchFilmsAsync(Filter.Filter)).ToList();
+            if (Filter == null)
+            {
+                Filter = new SearchFilter();
+            }
+
+            Films = await _filmRepository.SearchFilmsAsync(Filter.Filter);
         }
     }
 }
