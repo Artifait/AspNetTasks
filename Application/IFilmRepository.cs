@@ -17,5 +17,7 @@ namespace AspNetTasks.Application
 
         Task UpdateFilmAsync(Film film);
         Task<IEnumerable<Film>> SearchFilmsAsync(Expression<Func<Film, bool>> filterExpression);
+
+        Task<int> GetReservedSeatsCountAsync(int sessionId);
     }
 }

@@ -3,6 +3,7 @@ using System;
 using AspNetTasks.DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,12 +11,29 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AspNetTasks.Migrations
 {
     [DbContext(typeof(CinemaContext))]
-    partial class CinemaContextModelSnapshot : ModelSnapshot
+    [Migration("20250326091538_AddSeatsAndSeatReservation")]
+    partial class AddSeatsAndSeatReservation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.2");
+
+            modelBuilder.Entity("AspNetTasks.DataAccess.Entities.Account", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Accounts");
+                });
 
             modelBuilder.Entity("AspNetTasks.DataAccess.Entities.Film", b =>
                 {
@@ -72,70 +90,27 @@ namespace AspNetTasks.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("AccountId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("FilmSessionId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("ReservedAt")
                         .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Reservations");
-                });
-
-            modelBuilder.Entity("AspNetTasks.DataAccess.Entities.ReservationSeat", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ReservationId")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("SeatId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ReservationId");
-
-                    b.HasIndex("SeatId");
-
-                    b.ToTable("ReservationSeats");
-                });
-
-            modelBuilder.Entity("AspNetTasks.DataAccess.Entities.RowPosition", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("FilmSessionId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("FilmSessionId1")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("RowNumber")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<float>("X")
-                        .HasColumnType("REAL");
-
-                    b.Property<float>("Y")
-                        .HasColumnType("REAL");
-
-                    b.HasKey("Id");
+                    b.HasIndex("AccountId");
 
                     b.HasIndex("FilmSessionId");
 
-                    b.HasIndex("FilmSessionId1");
+                    b.HasIndex("SeatId");
 
-                    b.ToTable("RowPositions");
+                    b.ToTable("Reservations");
                 });
 
             modelBuilder.Entity("AspNetTasks.DataAccess.Entities.Seat", b =>
@@ -160,7 +135,7 @@ namespace AspNetTasks.Migrations
 
                     b.HasIndex("FilmSessionId");
 
-                    b.ToTable("Seats");
+                    b.ToTable("Seat");
                 });
 
             modelBuilder.Entity("AspNetTasks.DataAccess.Entities.FilmSession", b =>
@@ -174,11 +149,17 @@ namespace AspNetTasks.Migrations
                     b.Navigation("Film");
                 });
 
-            modelBuilder.Entity("AspNetTasks.DataAccess.Entities.ReservationSeat", b =>
+            modelBuilder.Entity("AspNetTasks.DataAccess.Entities.Reservation", b =>
                 {
-                    b.HasOne("AspNetTasks.DataAccess.Entities.Reservation", "Reservation")
-                        .WithMany("Seats")
-                        .HasForeignKey("ReservationId")
+                    b.HasOne("AspNetTasks.DataAccess.Entities.Account", "Account")
+                        .WithMany("Reservations")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AspNetTasks.DataAccess.Entities.FilmSession", "FilmSession")
+                        .WithMany()
+                        .HasForeignKey("FilmSessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -188,26 +169,11 @@ namespace AspNetTasks.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Reservation");
-
-                    b.Navigation("Seat");
-                });
-
-            modelBuilder.Entity("AspNetTasks.DataAccess.Entities.RowPosition", b =>
-                {
-                    b.HasOne("AspNetTasks.DataAccess.Entities.FilmSession", null)
-                        .WithMany("RowPositions")
-                        .HasForeignKey("FilmSessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("AspNetTasks.DataAccess.Entities.FilmSession", "FilmSession")
-                        .WithMany()
-                        .HasForeignKey("FilmSessionId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Account");
 
                     b.Navigation("FilmSession");
+
+                    b.Navigation("Seat");
                 });
 
             modelBuilder.Entity("AspNetTasks.DataAccess.Entities.Seat", b =>
@@ -221,19 +187,17 @@ namespace AspNetTasks.Migrations
                     b.Navigation("FilmSession");
                 });
 
+            modelBuilder.Entity("AspNetTasks.DataAccess.Entities.Account", b =>
+                {
+                    b.Navigation("Reservations");
+                });
+
             modelBuilder.Entity("AspNetTasks.DataAccess.Entities.Film", b =>
                 {
                     b.Navigation("Sessions");
                 });
 
             modelBuilder.Entity("AspNetTasks.DataAccess.Entities.FilmSession", b =>
-                {
-                    b.Navigation("RowPositions");
-
-                    b.Navigation("Seats");
-                });
-
-            modelBuilder.Entity("AspNetTasks.DataAccess.Entities.Reservation", b =>
                 {
                     b.Navigation("Seats");
                 });

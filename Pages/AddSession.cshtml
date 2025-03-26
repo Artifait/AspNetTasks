@@ -3,9 +3,58 @@
 @{
     ViewData["Title"] = "Добавить сеанс фильма";
 }
+<!-- Встроенные стили для canvas и рядов -->
+<style>
+    /* Оформление canvas – области для перетаскивания рядов */
+    #canvas {
+        border: 1px solid #ccc;
+        width: 100%;
+        height: 400px;
+        position: relative;
+        overflow: auto;
+        margin-top: 15px;
+        background-color: #fafafa;
+    }
+    /* Оформление ряда – блочного элемента внутри canvas */
+    .draggable-row {
+        border: 1px solid #999;
+        background-color: #f5f5f5;
+        padding: 5px;
+        width: auto;
+        min-width: 150px;
+        position: absolute;
+        cursor: move;
+    }
+    /* Заголовок ряда */
+    .row-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: black;
+    }
+    /* Контейнер для мест в ряду */
+    .seats-container {
+        display: flex;
+        gap: 5px;
+    }
+    /* Оформление отдельного места */
+    .seat {
+        width: 30px;
+        height: 30px;
+        background-color: #ddd;
+        border: 1px solid #999;
+        text-align: center;
+        line-height: 30px;
+        font-size: 12px;
+        border-radius: 4px;
+    }
+</style>
+
 <div class="container">
     <h1>@ViewData["Title"]</h1>
-    <form method="post" class="form">
+    <form method="post" id="sessionForm" class="form">
         <div class="form-group">
             <label for="FilmId">Выберите фильм:</label>
             <select id="FilmId" name="FilmId" required class="form-control">
@@ -23,8 +72,156 @@
             <label for="EndTime">Время конца:</label>
             <input type="datetime-local" id="EndTime" name="EndTime" required class="form-control" />
         </div>
+
+        <hr />
+        <h3>Конфигурация зала</h3>
+        <!-- Форма для ввода количества мест в ряду и кнопка добавления ряда -->
         <div class="form-group">
-            <button type="submit" class="button">Добавить сеанс</button>
+            <label for="rowSeatCount">Количество мест в ряду:</label>
+            <input type="number" id="rowSeatCount" class="form-control" min="1" placeholder="Введите количество мест" />
+            <button type="button" id="addRowBtn" class="btn btn-secondary" style="margin-top: 5px;">Добавить ряд</button>
+        </div>
+
+        <!-- Canvas для размещения рядов -->
+        <div id="canvas"></div>
+
+        <!-- Скрытое поле для передачи данных конфигурации рядов -->
+        <input type="hidden" id="seatingConfiguration" name="SeatingConfiguration" />
+
+        <div class="form-group" style="margin-top:20px;">
+            <button type="submit" class="btn btn-primary">Добавить сеанс</button>
         </div>
     </form>
 </div>
+
+@section Scripts {
+    <script>
+        // Массив для хранения конфигурации рядов
+        var seatingConfig = [];
+        var rowIdCounter = 1; // Уникальный идентификатор ряда для работы с DOM
+        var canvas = document.getElementById("canvas");
+
+        // Функция обновляет нумерацию рядов (они обновляются только при добавлении/удалении)
+        function updateRowNames() {
+            seatingConfig.forEach(function(row, index) {
+                row.rowNumber = index + 1;
+                var rowDiv = document.getElementById("row-" + row.id);
+                if (rowDiv) {
+                    var headerLabel = rowDiv.querySelector(".row-label");
+                    headerLabel.innerText = "Ряд " + row.rowNumber;
+                }
+            });
+        }
+
+        // Создание нового ряда с заданным количеством мест
+        function createRow(seatCount) {
+            var row = {
+                id: rowIdCounter++,
+                rowNumber: seatingConfig.length + 1,
+                seatCount: seatCount,
+                // Начальные координаты, можно задать по умолчанию
+                x: 10,
+                y: 10 + seatingConfig.length * 60
+            };
+            seatingConfig.push(row);
+            renderRows();
+        }
+
+        // Удаление ряда по его id
+        function removeRow(rowId) {
+            seatingConfig = seatingConfig.filter(function(row) {
+                return row.id !== rowId;
+            });
+            updateRowNames();
+            renderRows();
+        }
+
+        // Отрисовка всех рядов в canvas
+        function renderRows() {
+            canvas.innerHTML = "";
+            seatingConfig.forEach(function(row) {
+                var rowDiv = document.createElement("div");
+                rowDiv.classList.add("draggable-row");
+                rowDiv.setAttribute("id", "row-" + row.id);
+                rowDiv.setAttribute("data-id", row.id);
+                rowDiv.style.left = row.x + "px";
+                rowDiv.style.top = row.y + "px";
+                rowDiv.setAttribute("draggable", "true");
+
+                rowDiv.innerHTML = `
+                    <div class="row-header">
+                        <span class="row-label">Ряд ${row.rowNumber}</span>
+                        <button type="button" onclick="removeRow(${row.id})" class="btn btn-danger btn-sm">Удалить</button>
+                    </div>
+                    <div class="seats-container" id="seats-${row.id}"></div>
+                `;
+                canvas.appendChild(rowDiv);
+                renderSeats(row);
+                addDragHandlers(rowDiv);
+            });
+        }
+
+        // Отрисовка мест в ряду (равномерно с отступами)
+        function renderSeats(row) {
+            var seatContainer = document.getElementById("seats-" + row.id);
+            seatContainer.innerHTML = "";
+            for (var i = 1; i <= row.seatCount; i++) {
+                var seatDiv = document.createElement("div");
+                seatDiv.classList.add("seat");
+                seatDiv.innerText = i;
+                seatContainer.appendChild(seatDiv);
+            }
+        }
+
+        // Добавление обработчиков перетаскивания для ряда
+        function addDragHandlers(rowDiv) {
+            rowDiv.addEventListener("dragstart", function(e) {
+                e.dataTransfer.setData("text/plain", rowDiv.getAttribute("data-id"));
+            });
+            rowDiv.addEventListener("dragend", function(e) {
+                // Можно добавить визуальные эффекты
+            });
+        }
+
+        // Обработчик для canvas: разрешаем перемещение ряда внутри области
+        canvas.addEventListener("dragover", function(e) {
+            e.preventDefault();
+        });
+        canvas.addEventListener("drop", function(e) {
+            e.preventDefault();
+            var rowId = e.dataTransfer.getData("text/plain");
+            var rowDiv = document.getElementById("row-" + rowId);
+            if (rowDiv) {
+                // Вычисляем новые координаты относительно canvas
+                var rect = canvas.getBoundingClientRect();
+                var newX = e.clientX - rect.left - rowDiv.offsetWidth / 2;
+                var newY = e.clientY - rect.top - rowDiv.offsetHeight / 2;
+                rowDiv.style.left = newX + "px";
+                rowDiv.style.top = newY + "px";
+                // Обновляем данные в seatingConfig
+                var row = seatingConfig.find(r => r.id == rowId);
+                if (row) {
+                    row.x = newX;
+                    row.y = newY;
+                }
+            }
+        });
+
+        // Обработчик кнопки "Добавить ряд"
+        document.getElementById("addRowBtn").addEventListener("click", function () {
+            var seatCountInput = document.getElementById("rowSeatCount");
+            var seatCount = parseInt(seatCountInput.value);
+            if (seatCount > 0) {
+                createRow(seatCount);
+                seatCountInput.value = "";
+            } else {
+                alert("Введите корректное количество мест");
+            }
+        });
+
+        // При отправке формы сохраняем конфигурацию рядов в скрытое поле
+        document.getElementById("sessionForm").addEventListener("submit", function (e) {
+            document.getElementById("seatingConfiguration").value = JSON.stringify(seatingConfig);
+        });
+    </script>
+}

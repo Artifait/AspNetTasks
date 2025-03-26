@@ -15,11 +15,19 @@ namespace AspNetTasks.Pages
         }
 
         public Film Film { get; set; }
+        public Dictionary<int, int> ReservedSeats { get; set; } = new();
 
         public async Task OnGetAsync(int id)
         {
             Film = await _context.GetFilmAsync(id);
+
+            if (Film?.Sessions != null)
+            {
+                foreach (var session in Film.Sessions)
+                {
+                    ReservedSeats[session.Id] = await _context.GetReservedSeatsCountAsync(session.Id);
+                }
+            }
         }
     }
-
 }

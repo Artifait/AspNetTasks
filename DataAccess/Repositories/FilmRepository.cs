@@ -13,7 +13,7 @@ namespace AspNetTasks.DataAccess.Repositories
         {
             _context = context;
         }
-        
+
         public async Task AddFilmAsync(Film film)
         {
             await _context.Films.AddAsync(film);
@@ -22,9 +22,11 @@ namespace AspNetTasks.DataAccess.Repositories
 
         public async Task RemoveFilmAsync(int filmId)
         {
-            var film = await _context.Films.FindAsync(filmId);
+            var film = await _context.Films.Include(f => f.Sessions).FirstOrDefaultAsync(f => f.Id == filmId);
             if (film != null)
             {
+                // Удаляем все связанные сеансы перед удалением фильма
+                _context.FilmSessions.RemoveRange(film.Sessions);
                 _context.Films.Remove(film);
                 await _context.SaveChangesAsync();
             }
@@ -43,24 +45,45 @@ namespace AspNetTasks.DataAccess.Repositories
 
         public async Task RemoveFilmSessionAsync(int sessionId)
         {
-            var session = await _context.FilmSessions.FindAsync(sessionId);
+            var session = await _context.FilmSessions
+                .Include(s => s.Seats)
+                .Include(s => s.RowPositions)
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
+
             if (session != null)
             {
+                // Удаляем все связанные места и позиции рядов перед удалением сеанса
+                _context.Seats.RemoveRange(session.Seats);
+                _context.RowPositions.RemoveRange(session.RowPositions);
                 _context.FilmSessions.Remove(session);
+
                 await _context.SaveChangesAsync();
             }
         }
 
         public async Task<IEnumerable<FilmSession>> GetAllSessionsAsync()
         {
-            return await _context.FilmSessions.Include(s => s.Film).ToListAsync();
+            return await _context.FilmSessions
+                .Include(s => s.Film)
+                .Include(s => s.Seats)
+                .Include(s => s.RowPositions)
+                .ToListAsync();
+        }
+
+        public async Task<FilmSession?> GetFilmSessionAsync(int id)
+        {
+            return await _context.FilmSessions
+                .Include(s => s.Film)
+                .Include(s => s.Seats)
+                .Include(s => s.RowPositions)
+                .FirstOrDefaultAsync(s => s.Id == id);
         }
 
         public async Task<Film?> GetFilmAsync(int id)
         {
             return await _context.Films
-                                 .Include(f => f.Sessions)
-                                 .FirstOrDefaultAsync(f => f.Id == id);
+                .Include(f => f.Sessions)
+                .FirstOrDefaultAsync(f => f.Id == id);
         }
 
         public async Task UpdateFilmAsync(Film film)
@@ -77,12 +100,43 @@ namespace AspNetTasks.DataAccess.Repositories
             }
         }
 
+        public async Task UpdateFilmSessionAsync(FilmSession session)
+        {
+            var existingSession = await _context.FilmSessions
+                .Include(s => s.Seats)
+                .Include(s => s.RowPositions)
+                .FirstOrDefaultAsync(s => s.Id == session.Id);
+
+            if (existingSession != null)
+            {
+                existingSession.StartTime = session.StartTime;
+                existingSession.EndTime = session.EndTime;
+
+                // Обновляем места (удаляем старые, добавляем новые)
+                _context.Seats.RemoveRange(existingSession.Seats);
+                await _context.Seats.AddRangeAsync(session.Seats);
+
+                // Обновляем позиции рядов (удаляем старые, добавляем новые)
+                _context.RowPositions.RemoveRange(existingSession.RowPositions);
+                await _context.RowPositions.AddRangeAsync(session.RowPositions);
+
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task<IEnumerable<Film>> SearchFilmsAsync(Expression<Func<Film, bool>> filterExpression)
         {
-            IQueryable<Film> query = _context.Films.Include(f => f.Sessions)
-                                                   .Where(filterExpression);
+            return await _context.Films
+                .Include(f => f.Sessions)
+                .Where(filterExpression)
+                .ToListAsync();
+        }
 
-            return await query.ToListAsync();
+        public async Task<int> GetReservedSeatsCountAsync(int sessionId)
+        {
+            return await _context.Seats
+                .Where(s => s.FilmSessionId == sessionId && s.IsReserved)
+                .CountAsync();
         }
     }
 }

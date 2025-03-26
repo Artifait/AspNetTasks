@@ -1,0 +1,72 @@
+﻿@page "{id:int}"
+@model AspNetTasks.Pages.SessionDetailsModel
+@{
+    ViewData["Title"] = "Детали сеанса";
+}
+
+<div class="container">
+    <h1>Сеанс: @Model.Session.Film.Name</h1>
+    <p><strong>Начало:</strong> @Model.Session.StartTime.ToString("dd.MM.yyyy HH:mm")</p>
+    <p><strong>Окончание:</strong> @Model.Session.EndTime.ToString("dd.MM.yyyy HH:mm")</p>
+
+    <h3>Схема зала</h3>
+    <form method="post">
+        <div id="seatingCanvas" class="seating-canvas">
+            @foreach (var rowPosition in Model.RowPositions)
+            {
+                <div class="row" id="row-@rowPosition.RowNumber" style="top: @rowPosition.Y; left: @rowPosition.X;">
+                    <div class="row-header">
+                        <span>Ряд @rowPosition.RowNumber</span>
+                    </div>
+                    <div class="seats-container">
+                        @foreach (var seat in Model.Session.Seats.Where(s => s.RowNumber == rowPosition.RowNumber))
+                        {
+                            <div class="seat"
+                                 id="seat-@seat.Id"
+                                 style="background-color: @(seat.IsReserved ? "red" : (Model.SelectedSeats.Contains(seat.Id) ? "yellow" : "green"));"
+                                 onclick="reserveSeat(@seat.Id)">
+                                @seat.SeatNumber
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div>
+            <label for="phone">Номер телефона для бронирования:</label>
+            <input type="text" id="phone" name="Phone" class="form-control" value="@Model.Phone" />
+            <button type="submit" class="btn btn-success">Забронировать</button>
+        </div>
+    </form>
+
+    <a href="/FilmDetails/@Model.FilmId" class="button">Назад к фильму</a>
+</div>
+
+@section Scripts {
+    <script>
+        // Функция для выбора места
+        function reserveSeat(seatId) {
+            var seatDiv = document.getElementById("seat-" + seatId);
+            if (seatDiv.style.backgroundColor === 'green') { // Свободное место
+                seatDiv.style.backgroundColor = 'yellow'; // Меняем на выбранное
+                addSeatToSelection(seatId);
+            } else if (seatDiv.style.backgroundColor === 'yellow') { // Место уже выбрано
+                seatDiv.style.backgroundColor = 'green'; // Возвращаем в исходное
+                removeSeatFromSelection(seatId);
+            }
+        }
+
+        var selectedSeats = @Html.Raw(Json.Serialize(Model.SelectedSeats));
+
+        function addSeatToSelection(seatId) {
+            if (!selectedSeats.includes(seatId)) {
+                selectedSeats.push(seatId);
+            }
+        }
+
+        function removeSeatFromSelection(seatId) {
+            selectedSeats = selectedSeats.filter(id => id !== seatId);
+        }
+    </script>
+}

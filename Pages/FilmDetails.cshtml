@@ -18,14 +18,24 @@
                 <tr>
                     <th>Начало</th>
                     <th>Окончание</th>
+                    <th>Заполненность</th>
+                    <th>Детали</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var session in Model.Film.Sessions)
                 {
+                    var totalSeats = session.Seats.Count();
+                    var reservedSeats = Model.ReservedSeats.ContainsKey(session.Id)
+                    ? Model.ReservedSeats[session.Id]
+                    : 0;
+                    var freeSeats = totalSeats - reservedSeats;
+
                     <tr>
                         <td>@session.StartTime.ToString("dd.MM.yyyy HH:mm")</td>
                         <td>@session.EndTime.ToString("dd.MM.yyyy HH:mm")</td>
+                        <td>@reservedSeats/@totalSeats</td>
+                        <td><a href="/SessionDetails/@session.Id" class="button">Просмотр</a></td>
                     </tr>
                 }
             </tbody>
